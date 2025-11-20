@@ -1,5 +1,6 @@
 using Database;
 using Microsoft.EntityFrameworkCore;
+using SouthernMoneyBackend.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<PostService>();
+builder.Services.AddScoped<ImageBedService>();
+
+
 
 var app = builder.Build();
 
@@ -33,6 +38,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseAuthorization();
+
+// 使用自定义的鉴权中间件:请求头部必须包含"account","token"字段
+app.UseAuthMiddleware();
 
 app.MapControllers();
 

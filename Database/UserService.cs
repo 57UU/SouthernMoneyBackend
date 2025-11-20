@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -72,6 +72,17 @@ public class UserService
         session.ExpiresAt = DateTime.UtcNow.AddDays(7);
         await context.SaveChangesAsync();
         return true;
+    }
+    
+    /// <summary>
+    /// 通过token获取用户ID
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns></returns>
+    public async Task<long?> GetUserIdByToken(string token)
+    {
+        var session = await context.Sessions.FirstOrDefaultAsync(s => s.Token == token && s.ExpiresAt > DateTime.UtcNow);
+        return session?.UserId;
     }
     /// <summary>
     /// update user info
