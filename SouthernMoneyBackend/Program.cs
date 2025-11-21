@@ -39,7 +39,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthorization();
 
-// 使用自定义的鉴权中间件:请求头部必须包含"account","token"字段
+// 添加异常处理中间件
+app.UseMiddleware<ExceptionHandlerMiddleware>();
+
 app.UseAuthMiddleware();
 
 app.MapControllers();

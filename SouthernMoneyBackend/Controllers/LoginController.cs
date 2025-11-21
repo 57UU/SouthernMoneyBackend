@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Database;
+using SouthernMoneyBackend.Utils;
 
 namespace SouthernMoneyBackend.Controllers;
 
@@ -16,37 +17,68 @@ public class LoginController : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         var user = Database.User.CreateUser(request.Name, request.Password);
-        try{
+        try
+        {
             await userService.RegisterUser(user);
+            return Ok(ApiResponse.Ok());
         }
         catch (Exception e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(ApiResponse.Fail(e.Message, "REGISTRATION_FAILED"));
         }
-        return Ok();
     }
     [HttpPost("loginByPassword", Name = "LoginByPassword")]
     public async Task<IActionResult> LoginByPassword([FromBody] LoginByPasswordRequest request)
     {
-        try{
-            var session = await userService.LoginByPassword(request.Name, request.Password);
-            return Ok(session);
+        try
+        {
+            var token = await userService.LoginByPassword(request.Name, request.Password);
+            return Ok(ApiResponse.Ok(new { token = token }));
         }
         catch (Exception e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(ApiResponse.Fail(e.Message, "LOGIN_FAILED"));
         }
     }
-    [HttpPost("loginByToken", Name = "LoginByToken")]
-    public async Task<IActionResult> LoginByToken([FromBody] LoginByTokenRequest request)
+    [HttpPost("validateToken", Name = "ValidateToken")]
+    public IActionResult ValidateToken([FromBody] LoginByTokenRequest request)
     {
-        try{
-            var session = await userService.LoginByToken(request.Token);
-            return Ok(session);
+        try
+        {
+            bool isValid = userService.ValidateToken(request.Token);
+            if (isValid)
+            {
+                return Ok(ApiResponse.Ok(new { valid = true }));
+            }
+            else
+            {
+                return BadRequest(ApiResponse.Fail("Invalid token", "INVALID_TOKEN"));
+            }
         }
         catch (Exception e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(ApiResponse.Fail(e.Message, "VALIDATION_FAILED"));
+        }
+    }
+    
+    [HttpPost("refreshToken", Name = "RefreshToken")]
+    public async Task<IActionResult> RefreshToken([FromBody] LoginByTokenRequest request)
+    {
+        try
+        {
+            var newToken = await userService.RefreshToken(request.Token);
+            if (newToken != null)
+            {
+                return Ok(ApiResponse.Ok(new { token = newToken }));
+            }
+            else
+            {
+                return BadRequest(ApiResponse.Fail("Failed to refresh token", "REFRESH_FAILED"));
+            }
+        }
+        catch (Exception e)
+        {
+            return BadRequest(ApiResponse.Fail(e.Message, "REFRESH_FAILED"));
         }
     }
 

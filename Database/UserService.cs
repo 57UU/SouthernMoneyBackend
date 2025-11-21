@@ -28,61 +28,75 @@ public class UserService
         await context.SaveChangesAsync();
     }
     /// <summary>
-    /// login by password and return a token
+    /// login by password and return a JWT token
     /// </summary>
     /// <param name="name"></param>
     /// <param name="password"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public async Task<Session> LoginByPassword(string name, string password)
+    public async Task<string> LoginByPassword(string name, string password)
     {
-        var user= await context.Users.FirstOrDefaultAsync(u => u.Name == name);
-        if(user == null)
-        {
-            throw new Exception("User not found");
-        }
+        var user= await context.Users.FirstOrDefaultAsync(u => u.Name == name) 
+            ?? throw new Exception("User not found");
         //verify password
-        if(!Utils.VerifyPassword(password, user.Password))
+        if (!Utils.VerifyPassword(password, user.Password))
         {
             throw new Exception("Password not match");
         }
-        var session = new Session
-        {
-            Token = Guid.NewGuid().ToString(),
-            UserId = user.Id,
-            CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddDays(7)
-        };
-        context.Sessions.Add(session);
-        await context.SaveChangesAsync();
-        return session;
+        
+        // 生成JWT令牌
+        return JwtUtils.GenerateToken(user.Id, user.IsAdmin);
     }
     /// <summary>
-    /// validate token and refresh expires time
+    /// validate JWT token
     /// </summary>
     /// <param name="token"></param>
     /// <returns></returns>
-    public async Task<bool> LoginByToken(string token)
+    public bool ValidateToken(string token)
     {
-        var session = await context.Sessions.FirstOrDefaultAsync(s => s.Token == token && s.ExpiresAt > DateTime.UtcNow);
-        if (session == null)
-        {
-            return false;
-        }
-        session.ExpiresAt = DateTime.UtcNow.AddDays(7);
-        await context.SaveChangesAsync();
-        return true;
+        var principal = JwtUtils.ValidateToken(token);
+        return principal != null;
     }
     
     /// <summary>
-    /// 通过token获取用户ID
+    /// 通过JWT token获取用户ID
     /// </summary>
     /// <param name="token"></param>
     /// <returns></returns>
-    public async Task<long?> GetUserIdByToken(string token)
+    public long? GetUserIdByToken(string token)
     {
-        var session = await context.Sessions.FirstOrDefaultAsync(s => s.Token == token && s.ExpiresAt > DateTime.UtcNow);
-        return session?.UserId;
+        var principal = JwtUtils.ValidateToken(token);
+        return JwtUtils.GetUserId(principal);
+    }
+    
+    /// <summary>
+    /// 通过JWT token获取用户信息
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns></returns>
+    public async Task<User?> GetUserByToken(string token)
+    {
+        var userId = GetUserIdByToken(token);
+        if (!userId.HasValue)
+        {
+            return null;
+        }
+        return await context.Users.FirstOrDefaultAsync(u => u.Id == userId.Value);
+    }
+    
+    /// <summary>
+    /// 刷新JWT令牌
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns></returns>
+    public async Task<string?> RefreshToken(string token)
+    {
+        var user = await GetUserByToken(token);
+        if (user == null)
+        {
+            return null;
+        }
+        return JwtUtils.GenerateToken(user.Id, user.IsAdmin);
     }
     /// <summary>
     /// update user info

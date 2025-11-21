@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace Database;
 
@@ -22,25 +22,7 @@ public class User
     }
     public bool IsAdmin { get; set; } = false;
 }
-public class Session
-{
-    // 使用Token作为主键
-    public string Token { get; set; }
-    
-    // 用户ID外键
-    public long UserId { get; set; }
-    
-    // 用户导航属性
-    [JsonIgnore]
-    public User User { get; set; }
-    
-    // 创建时间
-    public DateTime CreatedAt { get; set; }
-    
-    // 过期时间
-    public DateTime ExpiresAt { get; set; }
-    
-}
+
 
 
 public class Image{
