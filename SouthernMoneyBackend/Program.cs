@@ -42,7 +42,9 @@ app.UseAuthorization();
 // 添加异常处理中间件
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 
-app.UseAuthMiddleware();
+app.UseAuthMiddleware(builder=>{
+    builder.Enable = !app.Environment.IsDevelopment(); //disable auth in dev env
+});
 
 app.MapControllers();
 

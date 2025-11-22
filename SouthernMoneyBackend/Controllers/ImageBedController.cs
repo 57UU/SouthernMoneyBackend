@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Database;
 using SouthernMoneyBackend.Utils;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SouthernMoneyBackend.Controllers;
 
@@ -33,6 +34,7 @@ public class ImageBedController : ControllerBase
         return Ok(ApiResponse.Ok(new { ImageId = imageId }));
     }
     [HttpGet("/get")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetImageAsync([FromQuery(Name = "id")] Guid imageId)
     {
         var image = await imageBedService.GetImageAsync(imageId);

@@ -8,19 +8,39 @@ using SouthernMoneyBackend.Utils;
 namespace SouthernMoneyBackend.Middleware;
 
 /// <summary>
+/// 认证中间件配置选项
+/// </summary>
+public class AuthMiddlewareOptions
+{
+    /// <summary>
+    /// 是否启用认证中间件
+    /// </summary>
+    public bool Enable { get; set; } = true;
+}
+
+/// <summary>
 /// JWT认证中间件，验证Authorization请求头中的Bearer令牌
 /// </summary>
 public class AuthMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly AuthMiddlewareOptions _options;
     
-    public AuthMiddleware(RequestDelegate next)
+    public AuthMiddleware(RequestDelegate next, AuthMiddlewareOptions options)
     {
         _next = next;
+        _options = options ?? new AuthMiddlewareOptions();
     }
     
     public async Task InvokeAsync(HttpContext context, UserService userService)
     {
+        // 如果中间件未启用，直接跳过所有验证逻辑
+        if (!_options.Enable)
+        {
+            await _next(context);
+            return;
+        }
+        
         // 检查是否是登录相关的请求，如果是则跳过验证
         if (context.Request.Path.StartsWithSegments("/login"))
         {
@@ -91,6 +111,19 @@ public static class AuthMiddlewareExtensions
 {
     public static IApplicationBuilder UseAuthMiddleware(this IApplicationBuilder builder)
     {
-        return builder.UseMiddleware<AuthMiddleware>();
+        return builder.UseMiddleware<AuthMiddleware>(new AuthMiddlewareOptions());
+    }
+    
+    /// <summary>
+    /// 注册认证中间件并配置选项
+    /// </summary>
+    /// <param name="builder">应用构建器</param>
+    /// <param name="configureOptions">配置选项的委托</param>
+    /// <returns>应用构建器</returns>
+    public static IApplicationBuilder UseAuthMiddleware(this IApplicationBuilder builder, Action<AuthMiddlewareOptions> configureOptions)
+    {
+        var options = new AuthMiddlewareOptions();
+        configureOptions?.Invoke(options);
+        return builder.UseMiddleware<AuthMiddleware>(options);
     }
 }
