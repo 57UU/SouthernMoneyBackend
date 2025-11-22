@@ -20,17 +20,21 @@ public class ImageBedController : ControllerBase
     {
         if(file==null)
         {
-            return BadRequest(ApiResponse.Fail("File is null", "FILE_NULL"));
+            return BadRequest(ApiResponse.Fail("File is null"));
         }
         if(file.Length>MaxFileSize)
         {
-            return BadRequest(ApiResponse.Fail("File size exceeds 2MB", "FILE_TOO_LARGE"));
+            return BadRequest(ApiResponse.Fail("File size exceeds 2MB"));
         }
         using var stream = file.OpenReadStream();
         using var memoryStream = new MemoryStream();
         await stream.CopyToAsync(memoryStream);
         var userId = HttpContext.GetUserId();
-        var imageId = await imageBedService.UploadImageAsync(memoryStream.ToArray(),userId,imageType,description);
+        if(!userId.HasValue)
+        {
+            return Unauthorized(ApiResponse.Fail("User not authenticated"));
+        }
+        var imageId = await imageBedService.UploadImageAsync(memoryStream.ToArray(),userId.Value,imageType,description);
         return Ok(ApiResponse.Ok(new { ImageId = imageId }));
     }
     [HttpGet("/get")]
@@ -40,7 +44,7 @@ public class ImageBedController : ControllerBase
         var image = await imageBedService.GetImageAsync(imageId);
         if(image==null)
         {
-            return NotFound(ApiResponse.Fail("Image not found", "IMAGE_NOT_FOUND"));
+            return NotFound(ApiResponse.Fail("Image not found"));
         }
         return Ok(ApiResponse.Ok(image));
     }

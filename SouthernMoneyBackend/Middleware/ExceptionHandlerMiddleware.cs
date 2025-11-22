@@ -55,7 +55,7 @@ public class ExceptionHandlerMiddleware
         context.Response.StatusCode = (int)statusCode;
         
         // 创建标准的错误响应
-        var response = ApiResponse.Fail(message, errorCode);
+        var response = ApiResponse.Fail(message);
         
         // 如果是开发环境，包含详细的异常信息
         if (context.RequestServices.GetService<IHostEnvironment>()?.IsDevelopment() ?? false)
@@ -64,7 +64,7 @@ public class ExceptionHandlerMiddleware
             {
                 response.Success,
                 response.Message,
-                response.ErrorCode,
+                statusCode,
                 response.Timestamp,
                 Details = exception.ToString(),
                 StackTrace = exception.StackTrace

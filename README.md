@@ -9,6 +9,28 @@
 访问`/swagger`即可查看API可视化文档
 
 # API细节
+通用准则：所有接口均返回`ApiResponse<T>`对象，其中`T`是具体的响应数据类型。
+格式如下：
+```json
+{
+    "Success": bool,
+    "Message": "错误信息", //optional
+    "Data": {  },//optional
+    "Timestamp": "2023-10-01T12:00:00Z"
+}
+```
+下文提到的响应返回对象指的是"Data"字段对应的内容。例如`/login/loginByPassword`的完整响应如下：
+```json
+{
+    "Success": true,
+    "Data": {
+        "Token": "登录令牌",
+        "ExpireTime": "2023-10-01T12:00:00Z"
+    },
+    "Timestamp": "2023-10-01T12:00:00Z"
+}
+```
+
 ## login
 ### 注册用户
 - **路径**: `/login/register`
@@ -20,10 +42,6 @@
     "Password": "密码"
 }
 ```
-- **成功响应**:
-  - `200 OK`
-- **错误响应**:
-  - `400 Bad Request`: 包含错误信息
 
 ### 密码登录
 - **路径**: `/login/loginByPassword`
@@ -36,9 +54,12 @@
 }
 ```
 - **成功响应**:
-  - `200 OK`: 返回Session对象，包含Token、过期时间等
-- **错误响应**:
-  - `400 Bad Request`: 包含错误信息（如用户不存在、密码不匹配）
+```json
+{
+    "Token": "登录令牌",
+    "ExpireTime": "2023-10-01T12:00:00Z"
+}
+```
 
 ### Token登录
 - **路径**: `/login/loginByToken`
@@ -427,6 +448,7 @@
 ## 认证方式
 
 ### JWT认证
+*：在development环境下，禁用了JWT认证
 
 所有非登录相关的API（即非`/login/*`路径）都需要在请求头中提供以下认证信息：
 

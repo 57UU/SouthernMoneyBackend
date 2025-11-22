@@ -24,7 +24,7 @@ public class LoginController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(ApiResponse.Fail(e.Message, "REGISTRATION_FAILED"));
+            return BadRequest(ApiResponse.Fail(e.Message));
         }
     }
     [HttpPost("loginByPassword", Name = "LoginByPassword")]
@@ -37,27 +37,7 @@ public class LoginController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(ApiResponse.Fail(e.Message, "LOGIN_FAILED"));
-        }
-    }
-    [HttpPost("validateToken", Name = "ValidateToken")]
-    public IActionResult ValidateToken([FromBody] LoginByTokenRequest request)
-    {
-        try
-        {
-            bool isValid = userService.ValidateToken(request.Token);
-            if (isValid)
-            {
-                return Ok(ApiResponse.Ok(new { valid = true }));
-            }
-            else
-            {
-                return BadRequest(ApiResponse.Fail("Invalid token", "INVALID_TOKEN"));
-            }
-        }
-        catch (Exception e)
-        {
-            return BadRequest(ApiResponse.Fail(e.Message, "VALIDATION_FAILED"));
+            return BadRequest(ApiResponse.Fail(e.Message));
         }
     }
     
@@ -73,12 +53,12 @@ public class LoginController : ControllerBase
             }
             else
             {
-                return BadRequest(ApiResponse.Fail("Failed to refresh token", "REFRESH_FAILED"));
+                return BadRequest(ApiResponse.Fail("Failed to refresh token"));
             }
         }
         catch (Exception e)
         {
-            return BadRequest(ApiResponse.Fail(e.Message, "REFRESH_FAILED"));
+            return BadRequest(ApiResponse.Fail(e.Message));
         }
     }
 

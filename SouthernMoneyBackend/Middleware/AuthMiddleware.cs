@@ -52,7 +52,7 @@ public class AuthMiddleware
         if (!context.Request.Headers.TryGetValue("Authorization", out var authHeader))
         {
             context.Response.StatusCode = 401;
-            await context.Response.WriteAsJsonAsync(ApiResponse.Fail("Authorization header is required", "MISSING_AUTH_HEADER"));
+            await context.Response.WriteAsJsonAsync(ApiResponse.Fail("Authorization header is required"));
             return;
         }
         
@@ -61,7 +61,7 @@ public class AuthMiddleware
         if (!authHeaderValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
         {
             context.Response.StatusCode = 401;
-            await context.Response.WriteAsJsonAsync(ApiResponse.Fail("Authorization header must be in format: Bearer {token}", "INVALID_AUTH_FORMAT"));
+            await context.Response.WriteAsJsonAsync(ApiResponse.Fail("Authorization header must be in format: Bearer {token}"));
             return;
         }
         
@@ -73,7 +73,7 @@ public class AuthMiddleware
         if (principal == null)
         {
             context.Response.StatusCode = 401;
-            await context.Response.WriteAsJsonAsync(ApiResponse.Fail("Invalid or expired token", "INVALID_TOKEN"));
+            await context.Response.WriteAsJsonAsync(ApiResponse.Fail("Invalid or expired token"));
             return;
         }
         
@@ -96,7 +96,7 @@ public class AuthMiddleware
         // 创建更新后的ClaimsPrincipal
         var updatedPrincipal = new ClaimsPrincipal(identity);
         
-        context.Items["UserId"] = userId.Value;
+        context.Items["UserId"] = userId;
         context.Items["IsAdmin"] = isAdmin;
         context.Items["User"] = updatedPrincipal; // 存储更新后的ClaimsPrincipal，包含角色信息
         
