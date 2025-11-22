@@ -31,16 +31,21 @@ public class AuthMiddleware
         _next = next;
         _options = options ?? new AuthMiddlewareOptions();
     }
-    
-    public async Task InvokeAsync(HttpContext context, UserService userService)
-    {
-        // 如果中间件未启用，直接跳过所有验证逻辑
-        if (!_options.Enable)
+    public async Task InvokeAsync(HttpContext context, UserService userService){
+        if (_options.Enable)
         {
-            await _next(context);
-            return;
+            await _verify(context, userService);
+        }else{
+            try{
+                await _verify(context, userService);
+            }catch(Exception){
+                //ignore
+            }
         }
-        
+        await _next(context);
+    }
+    public async Task _verify(HttpContext context, UserService userService)
+    {
         // 检查是否是登录相关的请求，如果是则跳过验证
         if (context.Request.Path.StartsWithSegments("/login"))
         {
@@ -99,8 +104,6 @@ public class AuthMiddleware
         context.Items["UserId"] = userId;
         context.Items["IsAdmin"] = isAdmin;
         context.Items["User"] = updatedPrincipal; // 存储更新后的ClaimsPrincipal，包含角色信息
-        
-        await _next(context);
     }
 }
 

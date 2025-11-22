@@ -87,12 +87,12 @@ public class ApiResponse : ApiResponse<object>
 /// <summary>
 /// 分页响应格式
 /// </summary>
-public class PaginatedResponse<T> : ApiResponse<List<T>>
+public class PaginatedResponse<T> 
 {
     /// <summary>
     /// 当前页码
     /// </summary>
-    public int Page { get; set; }
+    public int CurrentPage { get; set; }
     
     /// <summary>
     /// 每页大小
@@ -105,24 +105,23 @@ public class PaginatedResponse<T> : ApiResponse<List<T>>
     public int TotalCount { get; set; }
     
     /// <summary>
-    /// 总页数
+    /// 数据项列表
     /// </summary>
-    public int TotalPages { get; set; }
-    
+    public List<T> Items { get; set; } = new List<T>();
+
     /// <summary>
     /// 创建分页响应
     /// </summary>
-    public static PaginatedResponse<T> Create(List<T> data, int page, int pageSize, int totalCount)
+    public static ApiResponse<PaginatedResponse<T>> Create(List<T> data, int page, int pageSize, int totalCount)
     {
-        return new PaginatedResponse<T>
+        PaginatedResponse<T> payload = new PaginatedResponse<T>
         {
-            Success = true,
-            Data = data,
-            Page = page,
+            CurrentPage = page,
             PageSize = pageSize,
             TotalCount = totalCount,
-            TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
-            Timestamp = DateTime.UtcNow
+            Items = data
         };
+        return ApiResponse<PaginatedResponse<T>>.Ok(payload);
     }
 }
+    

@@ -31,6 +31,22 @@
 }
 ```
 
+分页：所有分页接口都返回`ApiResponse<PagedResult<T>>`对象，其中`T`是具体的响应数据类型。
+格式如下：
+```json
+{
+    "Success": bool,
+    "Message": "错误信息", //optional
+    "Data": {
+        "Items": [  ],//optional
+        "TotalCount": 0,
+        "PageSize": 0,
+        "CurrentPage": 0
+    },
+    "Timestamp": "2023-10-01T12:00:00Z"
+}
+```
+
 ## login
 ### 注册用户
 - **路径**: `/login/register`
@@ -465,11 +481,9 @@ Authorization: Bearer <jwt_token>
   {
     "success": false,
     "message": "认证失败原因",
-    "errorCode": "UNAUTHORIZED",
     "timestamp": "时间戳"
   }
   ```
 
-### 令牌验证和刷新
-- 可以通过`/login/validateToken`端点验证令牌是否有效
+### 令牌刷新
 - 可以通过`/login/refreshToken`端点刷新即将过期的令牌
