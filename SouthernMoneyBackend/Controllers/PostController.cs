@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Database;
 using SouthernMoneyBackend.Utils;
 using SouthernMoneyBackend.Middleware;
+using System.Linq;
 
 namespace SouthernMoneyBackend.Controllers;
 
@@ -23,7 +24,7 @@ public class PostController : ControllerBase
         var userId = HttpContext.GetUserId();
         try
         {
-            var postId = await postService.CreatePostAsync(userId, request);
+            var postId = await postService.CreatePostAsync(userId, request.Title, request.Content, request.Images, request.Tags);
             return Ok(ApiResponse.Ok(new { PostId = postId }));
         }
         catch (Exception e)
@@ -38,8 +39,9 @@ public class PostController : ControllerBase
         var userId = HttpContext.GetUserId();
         try
         {
-            var post = await postService.GetPostDetailAsync(postId, userId);
-            return Ok(ApiResponse.Ok(post));
+            var detail = await postService.GetPostDetailAsync(postId, userId);
+            var dto = MapToDto(detail.Post, detail.IsLiked);
+            return Ok(ApiResponse.Ok(dto));
         }
         catch (KeyNotFoundException e)
         {
@@ -56,7 +58,9 @@ public class PostController : ControllerBase
     {
         var userId = HttpContext.GetUserId();
         var result = await postService.GetPostsPageAsync(page, pageSize, userId);
-        return Ok(result);
+        var dtos = result.Posts.Select(p => MapToDto(p, result.LikedPostIds.Contains(p.Id))).ToList();
+        var response = PaginatedResponse<PostDto>.Create(dtos, page, pageSize, result.TotalCount);
+        return Ok(response);
     }
     
     [HttpGet("myPosts")]
@@ -64,7 +68,9 @@ public class PostController : ControllerBase
     {
         var userId = HttpContext.GetUserId();
         var result = await postService.GetMyPostsAsync(userId, page, pageSize);
-        return Ok(result);
+        var dtos = result.Posts.Select(p => MapToDto(p, result.LikedPostIds.Contains(p.Id))).ToList();
+        var response = PaginatedResponse<PostDto>.Create(dtos, page, pageSize, result.TotalCount);
+        return Ok(response);
     }
     
     [HttpPost("like")]
@@ -102,5 +108,28 @@ public class PostController : ControllerBase
         {
             return BadRequest(ApiResponse.Fail(e.Message, "REPORT_FAILED"));
         }
+    }
+    
+    private static PostDto MapToDto(Post post, bool isLiked)
+    {
+        return new PostDto
+        {
+            Id = post.Id,
+            Title = post.Title,
+            Content = post.Content,
+            CreatedAt = post.CreatedAt,
+            ReportCount = post.ReportCount,
+            ViewCount = post.ViewCount,
+            LikeCount = post.LikeCount,
+            IsBlocked = post.IsBlocked,
+            IsLiked = isLiked,
+            Tags = post.PostTags?.Select(t => t.Tag).ToList() ?? new List<string>(),
+            ImageIds = post.PostImages?.Select(pi => pi.ImageId).ToList() ?? new List<Guid>(),
+            Uploader = post.User == null ? null : new PostUploaderDto
+            {
+                Id = post.User.Id,
+                Name = post.User.Name
+            }
+        };
     }
 }

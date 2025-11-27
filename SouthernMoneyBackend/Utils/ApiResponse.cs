@@ -20,6 +20,10 @@ public class ApiResponse<T>
     /// </summary>
     public string? Message { get; set; }
     
+    /// <summary>
+    /// 错误代码
+    /// </summary>
+    public string? ErrorCode { get; set; }
     
     /// <summary>
     /// 时间戳
@@ -42,12 +46,13 @@ public class ApiResponse<T>
     /// <summary>
     /// 失败响应
     /// </summary>
-    public static ApiResponse<T> Fail(string message)
+    public static ApiResponse<T> Fail(string message, string? errorCode = null)
     {
         return new ApiResponse<T>
         {
             Success = false,
             Message = message,
+            ErrorCode = errorCode,
             Timestamp = DateTime.UtcNow
         };
     }
@@ -73,12 +78,13 @@ public class ApiResponse : ApiResponse<object>
     /// <summary>
     /// 失败响应
     /// </summary>
-    public new static ApiResponse Fail(string message)
+    public new static ApiResponse Fail(string message, string? errorCode = null)
     {
         return new ApiResponse
         {
             Success = false,
             Message = message,
+            ErrorCode = errorCode,
             Timestamp = DateTime.UtcNow
         };
     }

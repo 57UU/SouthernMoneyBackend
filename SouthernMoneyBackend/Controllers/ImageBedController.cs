@@ -30,11 +30,7 @@ public class ImageBedController : ControllerBase
         using var memoryStream = new MemoryStream();
         await stream.CopyToAsync(memoryStream);
         var userId = HttpContext.GetUserId();
-        if(!userId.HasValue)
-        {
-            return Unauthorized(ApiResponse.Fail("User not authenticated"));
-        }
-        var imageId = await imageBedService.UploadImageAsync(memoryStream.ToArray(),userId.Value,imageType,description);
+        var imageId = await imageBedService.UploadImageAsync(memoryStream.ToArray(),userId,imageType,description);
         return Ok(ApiResponse.Ok(new { ImageId = imageId }));
     }
     [HttpGet("/get")]

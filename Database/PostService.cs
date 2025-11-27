@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using SouthernMoneyBackend;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Database;
 
@@ -11,13 +12,13 @@ public class PostService
         this.dbContext = dbContext;
     }
     
-    public async Task<Guid> CreatePostAsync(long userId, PostRequest request)
+    public async Task<Guid> CreatePostAsync(long userId, string title, string content, ICollection<string>? images, ICollection<string>? tags)
     {
-        if (string.IsNullOrWhiteSpace(request.Title))
+        if (string.IsNullOrWhiteSpace(title))
         {
             throw new ArgumentException("Title is required");
         }
-        if (string.IsNullOrWhiteSpace(request.Content))
+        if (string.IsNullOrWhiteSpace(content))
         {
             throw new ArgumentException("Content is required");
         }
@@ -27,15 +28,15 @@ public class PostService
             Id = Guid.NewGuid(),
             UploaderUserId = userId,
             CreatedAt = DateTime.UtcNow,
-            Title = request.Title,
-            Content = request.Content,
+            Title = title,
+            Content = content,
             IsBlocked = false
         };
         
         // 处理标签
-        if (request.Tags != null)
+        if (tags != null)
         {
-            foreach (var tag in request.Tags.Where(t => !string.IsNullOrWhiteSpace(t)))
+            foreach (var tag in tags.Where(t => !string.IsNullOrWhiteSpace(t)))
             {
                 post.PostTags.Add(new PostTags
                 {
@@ -46,9 +47,9 @@ public class PostService
         }
         
         // 处理图片
-        if (request.Images != null)
+        if (images != null)
         {
-            foreach (var imageStr in request.Images)
+            foreach (var imageStr in images)
             {
                 if (!Guid.TryParse(imageStr, out var imageId))
                 {
@@ -83,7 +84,7 @@ public class PostService
             .FirstOrDefaultAsync(p => p.Id == postId);
     }
     
-    public async Task<PostDto> GetPostDetailAsync(Guid postId, long currentUserId)
+    public async Task<PostDetailResult> GetPostDetailAsync(Guid postId, long currentUserId)
     {
         var post = await dbContext.Posts
             .Include(p => p.User)
@@ -97,10 +98,14 @@ public class PostService
         await dbContext.SaveChangesAsync();
         
         bool isLiked = await dbContext.PostLikes.AnyAsync(pl => pl.PostId == postId && pl.UserId == currentUserId);
-        return MapToDto(post, isLiked);
+        return new PostDetailResult
+        {
+            Post = post,
+            IsLiked = isLiked
+        };
     }
     
-    public async Task<PaginatedResponse<PostDto>> GetPostsPageAsync(int page, int pageSize, long currentUserId)
+    public async Task<PagedPostsResult> GetPostsPageAsync(int page, int pageSize, long currentUserId)
     {
         if (page <= 0) page = 1;
         if (pageSize <= 0) pageSize = 10;
@@ -124,11 +129,15 @@ public class PostService
             .Select(pl => pl.PostId)
             .ToListAsync();
         
-        var dtos = posts.Select(p => MapToDto(p, likedIds.Contains(p.Id))).ToList();
-        return PaginatedResponse<PostDto>.Create(dtos, page, pageSize, totalCount);
+        return new PagedPostsResult
+        {
+            Posts = posts,
+            LikedPostIds = likedIds.ToHashSet(),
+            TotalCount = totalCount
+        };
     }
     
-    public async Task<PaginatedResponse<PostDto>> GetMyPostsAsync(long userId, int page, int pageSize)
+    public async Task<PagedPostsResult> GetMyPostsAsync(long userId, int page, int pageSize)
     {
         if (page <= 0) page = 1;
         if (pageSize <= 0) pageSize = 10;
@@ -153,8 +162,12 @@ public class PostService
             .Select(pl => pl.PostId)
             .ToListAsync();
         
-        var dtos = posts.Select(p => MapToDto(p, likedIds.Contains(p.Id))).ToList();
-        return PaginatedResponse<PostDto>.Create(dtos, page, pageSize, totalCount);
+        return new PagedPostsResult
+        {
+            Posts = posts,
+            LikedPostIds = likedIds.ToHashSet(),
+            TotalCount = totalCount
+        };
     }
     
     public async Task<int> LikePostAsync(Guid postId, long userId)
@@ -187,27 +200,17 @@ public class PostService
         await dbContext.SaveChangesAsync();
         return post.ReportCount;
     }
-    
-    private static PostDto MapToDto(Post post, bool isLiked)
-    {
-        return new PostDto
-        {
-            Id = post.Id,
-            Title = post.Title,
-            Content = post.Content,
-            CreatedAt = post.CreatedAt,
-            ReportCount = post.ReportCount,
-            ViewCount = post.ViewCount,
-            LikeCount = post.LikeCount,
-            IsBlocked = post.IsBlocked,
-            IsLiked = isLiked,
-            Tags = post.PostTags?.Select(t => t.Tag).ToList() ?? new List<string>(),
-            ImageIds = post.PostImages?.Select(pi => pi.ImageId).ToList() ?? new List<Guid>(),
-            Uploader = post.User == null ? null : new PostUploaderDto
-            {
-                Id = post.User.Id,
-                Name = post.User.Name
-            }
-        };
-    }
+}
+
+public class PostDetailResult
+{
+    public Post Post { get; set; } = null!;
+    public bool IsLiked { get; set; }
+}
+
+public class PagedPostsResult
+{
+    public List<Post> Posts { get; set; } = new();
+    public HashSet<Guid> LikedPostIds { get; set; } = new();
+    public int TotalCount { get; set; }
 }

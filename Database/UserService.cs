@@ -66,6 +66,10 @@ public class UserService
     public long? GetUserIdByToken(string token)
     {
         var principal = JwtUtils.ValidateToken(token);
+        if (principal == null)
+        {
+            return null;
+        }
         return JwtUtils.GetUserId(principal);
     }
     
