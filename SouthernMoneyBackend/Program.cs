@@ -40,9 +40,8 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// 授权中间件
-app.UseAuthorization();
 
+//Note:中间件的顺序不要弄错
 // 添加异常处理中间件
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 
@@ -50,6 +49,9 @@ app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseAuthMiddleware(builder=>{
     builder.Enable = !app.Environment.IsDevelopment(); //disable auth in dev env
 });
+
+// 授权中间件
+app.UseAuthorization();
 
 // 路由匹配到控制器
 app.MapControllers();

@@ -87,24 +87,9 @@ public class AuthMiddleware
         long? userId = JwtUtils.GetUserId(principal);
         bool isAdmin = JwtUtils.IsAdmin(principal);
         
-        // 创建包含角色信息的新ClaimsIdentity
-        var identity = new ClaimsIdentity(principal.Identity);
-        
-        // 添加基本用户角色
-        identity.AddClaim(new Claim(ClaimTypes.Role, JwtUtils.USER_ROLE));
-        
-        // 如果是管理员，添加管理员角色
-        if (isAdmin)
-        {
-            identity.AddClaim(new Claim(ClaimTypes.Role, JwtUtils.ADMIN_ROLE));
-        }
-        
-        // 创建更新后的ClaimsPrincipal
-        var updatedPrincipal = new ClaimsPrincipal(identity);
-        
         context.Items["UserId"] = userId;
         context.Items["IsAdmin"] = isAdmin;
-        context.Items["User"] = updatedPrincipal; // 存储更新后的ClaimsPrincipal，包含角色信息
+        context.Items["User"] = principal;
     }
 }
 
