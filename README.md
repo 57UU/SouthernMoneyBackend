@@ -5,6 +5,27 @@
 
 依赖通过依赖注入实现，无需手动管理依赖。
 
+# 数据库迁移命令
+- 安装dotnet-ef 工具: `dotnet tool install --global dotnet-ef`
+- 生成迁移（在仓库根目录执行:
+```bash
+dotnet ef migrations add AddPostsAndLikes \
+  --project Database/Database.csproj \
+  --startup-project SouthernMoneyBackend/SouthernMoneyBackend.csproj \
+  --output-dir Migrations
+```
+- 应用迁移到数据库：
+```bash
+dotnet ef database update \
+  --project Database/Database.csproj \
+  --startup-project SouthernMoneyBackend/SouthernMoneyBackend.csproj
+```
+
+# 项目运行命令
+```bash
+dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
+```
+
 # API可视化
 访问`/swagger`即可查看API可视化文档
 

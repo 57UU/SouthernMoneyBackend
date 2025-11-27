@@ -46,10 +46,11 @@ public class AuthMiddleware
     }
     public async Task _verify(HttpContext context, UserService userService)
     {
-        // 检查是否是登录相关的请求，如果是则跳过验证
-        if (context.Request.Path.StartsWithSegments("/login"))
+        // 登录与开放文档（swagger/openapi）不做认证
+        if (context.Request.Path.StartsWithSegments("/login")
+            || context.Request.Path.StartsWithSegments("/swagger")
+            || context.Request.Path.StartsWithSegments("/openapi"))
         {
-            await _next(context);
             return;
         }
         

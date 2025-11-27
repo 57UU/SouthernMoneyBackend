@@ -35,6 +35,12 @@ public class ExceptionHandlerMiddleware
     
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
+        if (context.Response.HasStarted)
+        {
+            _logger.LogWarning("The response has already started, unable to handle exception: {Message}", exception.Message);
+            return;
+        }
+
         context.Response.ContentType = "application/json";
         
         // 根据不同类型的异常设置不同的状态码和错误信息
