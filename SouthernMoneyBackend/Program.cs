@@ -1,5 +1,6 @@
 using Database;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SouthernMoneyBackend.Middleware;
 
 // 配置Web应用程序 创建host 启动kestrel服务器
@@ -16,9 +17,22 @@ if (File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "appsettings.Secre
 builder.Services.AddControllers();  // 将使用控制器写web api 整套功能注入到应用
 builder.Services.AddOpenApi();  // 注册生成openai/swagger文档的服务
 
-//add dbcontext 定义数据库上下文创建规则
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+// 尝试连接PostgreSQL，失败则回退到SQLite
+string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+bool usePostgres = Utils.IsPostgreSqlAvailable(connectionString);
+
+if (usePostgres)
+{
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseNpgsql(connectionString));
+}
+else
+{
+    var logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<Program>();
+    logger.LogWarning("PostgreSQL连接失败，回退到SQLite数据库");
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlite($"Data Source=data.db"));
+}
 
 // 注入自定义服务
 builder.Services.AddScoped<UserService>();
@@ -60,7 +74,7 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await dbContext.Database.MigrateAsync();
+    await dbContext.Database.EnsureCreatedAsync();
 }
 
 // 运行应用 监听端口等待请求
