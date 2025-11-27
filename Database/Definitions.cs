@@ -48,8 +48,13 @@ public class Post{
     public DateTime CreatedAt { get; set; }
     public string Title { get; set; }
     public string Content { get; set; }
-    public ICollection<PostImage> PostImages { get; set; }
-    public ICollection<PostTags> PostTags { get; set; }
+    public int ReportCount { get; set; } = 0;
+    public int ViewCount { get; set; } = 0;
+    public int LikeCount { get; set; } = 0;
+    public bool IsBlocked { get; set; } = false;
+    public ICollection<PostImage> PostImages { get; set; } = new List<PostImage>();
+    public ICollection<PostTags> PostTags { get; set; } = new List<PostTags>();
+    public ICollection<PostLike> PostLikes { get; set; } = new List<PostLike>();
 }
 
 public class PostImage
@@ -67,6 +72,15 @@ public class PostTags{
     public Guid PostId { get; set; }
     public Post Post { get; set; }
     public string Tag { get; set; }
+}
+
+public class PostLike
+{
+    public Guid PostId { get; set; }
+    public Post Post { get; set; }
+    public long UserId { get; set; }
+    public User User { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
 

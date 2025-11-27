@@ -11,6 +11,7 @@ public class AppDbContext : DbContext
     public DbSet<Image> Images { get; set; }
     public DbSet<Post> Posts { get; set; }
     public DbSet<PostImage> PostImages { get; set; }
+    public DbSet<PostLike> PostLikes { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -88,6 +89,22 @@ public class AppDbContext : DbContext
             
             // 配置Tag属性
             entity.Property(pt => pt.Tag).IsRequired();
+        });
+        
+        // 配置PostLike实体
+        modelBuilder.Entity<PostLike>(entity =>
+        {
+            entity.HasKey(pl => new { pl.PostId, pl.UserId });
+            
+            entity.HasOne(pl => pl.Post)
+                  .WithMany(p => p.PostLikes)
+                  .HasForeignKey(pl => pl.PostId)
+                  .IsRequired();
+            
+            entity.HasOne(pl => pl.User)
+                  .WithMany()
+                  .HasForeignKey(pl => pl.UserId)
+                  .IsRequired();
         });
     }
 

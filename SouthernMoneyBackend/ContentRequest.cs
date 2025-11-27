@@ -22,4 +22,9 @@ public class PostRequest{
     public ICollection<string> Images { get; set; }
     public ICollection<string> Tags { get; set; }
 }
+
+public class PostReportRequest{
+    public Guid PostId { get; set; }
+    public string Reason { get; set; }
+}
 #pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
