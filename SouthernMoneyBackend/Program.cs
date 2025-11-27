@@ -42,10 +42,11 @@ builder.Services.AddScoped<ImageBedService>();
 
 // 对上面配置好的服务 构建真正实例app
 var app = builder.Build();
+bool isDevEnv = app.Environment.IsDevelopment();
 
 // Configure the HTTP request pipeline.
 // 只在开发环境启用swagger ui
-if (app.Environment.IsDevelopment())
+if (isDevEnv)
 {
     app.MapOpenApi(); //add openapi support
     app.UseSwaggerUI(options =>
@@ -57,11 +58,15 @@ if (app.Environment.IsDevelopment())
 
 //Note:中间件的顺序不要弄错
 // 添加异常处理中间件
-app.UseMiddleware<ExceptionHandlerMiddleware>();
+app.UseMiddleware<ExceptionHandlerMiddleware>(new ExceptionHandlerMiddlewareOptions
+{
+    IncludeExceptionDetailsInProduction = isDevEnv,
+});
 
 // 添加认证中间件
-app.UseAuthMiddleware(builder=>{
-    builder.Enable = !app.Environment.IsDevelopment(); //disable auth in dev env
+app.UseAuthMiddleware(builder =>
+{
+    builder.Enable = !isDevEnv; //disable auth in dev env
 });
 
 // 授权中间件

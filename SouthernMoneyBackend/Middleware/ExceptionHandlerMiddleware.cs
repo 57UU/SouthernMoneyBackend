@@ -6,6 +6,11 @@ using System.Text.Json;
 
 namespace SouthernMoneyBackend.Middleware;
 
+public class ExceptionHandlerMiddlewareOptions
+{
+    public bool IncludeExceptionDetailsInProduction { get; set; } = false;
+}
+
 /// <summary>
 /// 全局异常处理中间件
 /// </summary>
@@ -13,11 +18,13 @@ public class ExceptionHandlerMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlerMiddleware> _logger;
+    private readonly ExceptionHandlerMiddlewareOptions _options;
     
-    public ExceptionHandlerMiddleware(RequestDelegate next, ILogger<ExceptionHandlerMiddleware> logger)
+    public ExceptionHandlerMiddleware(RequestDelegate next, ILogger<ExceptionHandlerMiddleware> logger, ExceptionHandlerMiddlewareOptions options)
     {
         _next = next;
         _logger = logger;
+        _options = options;
     }
     
     public async Task InvokeAsync(HttpContext context)
@@ -28,7 +35,7 @@ public class ExceptionHandlerMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled exception occurred: {Message}", ex.Message);
+            // _logger.LogError(ex, "Unhandled exception occurred: {Message}", ex.Message);
             await HandleExceptionAsync(context, ex);
         }
     }
@@ -61,15 +68,16 @@ public class ExceptionHandlerMiddleware
         context.Response.StatusCode = (int)statusCode;
         
         // 创建标准的错误响应
-        var response = ApiResponse.Fail(message);
+        var response = ApiResponse.Fail(message, errorCode);
         
         // 如果是开发环境，包含详细的异常信息
-        if (context.RequestServices.GetService<IHostEnvironment>()?.IsDevelopment() ?? false)
+        if (_options.IncludeExceptionDetailsInProduction)
         {
             var devResponse = new
             {
                 response.Success,
                 response.Message,
+                response.ErrorCode,
                 statusCode,
                 response.Timestamp,
                 Details = exception.ToString(),

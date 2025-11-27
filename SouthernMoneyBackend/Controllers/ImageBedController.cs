@@ -20,11 +20,11 @@ public class ImageBedController : ControllerBase
     {
         if(file==null)
         {
-            return BadRequest(ApiResponse.Fail("File is null"));
+            return BadRequest(ApiResponse.Fail("File is null", "FILE_NULL"));
         }
         if(file.Length>MaxFileSize)
         {
-            return BadRequest(ApiResponse.Fail("File size exceeds 2MB"));
+            return BadRequest(ApiResponse.Fail("File size exceeds 2MB", "FILE_TOO_LARGE"));
         }
         using var stream = file.OpenReadStream();
         using var memoryStream = new MemoryStream();
@@ -40,7 +40,7 @@ public class ImageBedController : ControllerBase
         var image = await imageBedService.GetImageAsync(imageId);
         if(image==null)
         {
-            return NotFound(ApiResponse.Fail("Image not found"));
+            return NotFound(ApiResponse.Fail("Image not found", "IMAGE_NOT_FOUND"));
         }
         return Ok(ApiResponse.Ok(image));
     }

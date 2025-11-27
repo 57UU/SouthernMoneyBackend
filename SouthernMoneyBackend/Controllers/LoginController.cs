@@ -24,7 +24,7 @@ public class LoginController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(ApiResponse.Fail(e.Message));
+            return BadRequest(ApiResponse.Fail(e.Message, "REGISTER_FAILED"));
         }
     }
     [HttpPost("loginByPassword", Name = "LoginByPassword")]
@@ -37,7 +37,7 @@ public class LoginController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(ApiResponse.Fail(e.Message));
+            return BadRequest(ApiResponse.Fail(e.Message, "LOGIN_FAILED"));
         }
     }
     
@@ -53,12 +53,12 @@ public class LoginController : ControllerBase
             }
             else
             {
-                return BadRequest(ApiResponse.Fail("Failed to refresh token"));
+                return BadRequest(ApiResponse.Fail("Failed to refresh token", "REFRESH_TOKEN_FAILED"));
             }
         }
         catch (Exception e)
         {
-            return BadRequest(ApiResponse.Fail(e.Message));
+            return BadRequest(ApiResponse.Fail(e.Message, "REFRESH_TOKEN_ERROR"));
         }
     }
 
