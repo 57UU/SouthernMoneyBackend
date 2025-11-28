@@ -14,51 +14,51 @@ public class LoginController : ControllerBase
         this.userService = userService;
     }
     [HttpPost("register", Name = "RegisterUser")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    public async Task<ApiResponse> Register([FromBody] RegisterRequest request)
     {
         var user = Database.User.CreateUser(request.Name, request.Password);
         try
         {
             await userService.RegisterUser(user);
-            return Ok(ApiResponse.Ok());
+            return ApiResponse.Ok();
         }
         catch (Exception e)
         {
-            return BadRequest(ApiResponse.Fail(e.Message, "REGISTER_FAILED"));
+            return ApiResponse.Fail(e.Message, "REGISTER_FAILED");
         }
     }
     [HttpPost("loginByPassword", Name = "LoginByPassword")]
-    public async Task<IActionResult> LoginByPassword([FromBody] LoginByPasswordRequest request)
+    public async Task<ApiResponse<object>> LoginByPassword([FromBody] LoginByPasswordRequest request)
     {
         try
         {
             var token = await userService.LoginByPassword(request.Name, request.Password);
-            return Ok(ApiResponse.Ok(new { token = token }));
+            return ApiResponse.Ok(new { token = token });
         }
         catch (Exception e)
         {
-            return BadRequest(ApiResponse.Fail(e.Message, "LOGIN_FAILED"));
+            return ApiResponse.Fail(e.Message, "LOGIN_FAILED");
         }
     }
     
     [HttpPost("refreshToken", Name = "RefreshToken")]
-    public async Task<IActionResult> RefreshToken([FromBody] LoginByTokenRequest request)
+    public async Task<ApiResponse<object>> RefreshToken([FromBody] LoginByTokenRequest request)
     {
         try
         {
             var newToken = await userService.RefreshToken(request.Token);
             if (newToken != null)
             {
-                return Ok(ApiResponse.Ok(new { token = newToken }));
+                return ApiResponse.Ok(new { token = newToken });
             }
             else
             {
-                return BadRequest(ApiResponse.Fail("Failed to refresh token", "REFRESH_TOKEN_FAILED"));
+                return ApiResponse.Fail("Failed to refresh token", "REFRESH_TOKEN_FAILED");
             }
         }
         catch (Exception e)
         {
-            return BadRequest(ApiResponse.Fail(e.Message, "REFRESH_TOKEN_ERROR"));
+            return ApiResponse.Fail(e.Message, "REFRESH_TOKEN_ERROR");
         }
     }
 

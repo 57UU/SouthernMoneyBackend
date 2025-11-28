@@ -94,12 +94,11 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 ```json
 {
     "Token": "登录令牌",
-    "ExpireTime": "2023-10-01T12:00:00Z"
 }
 ```
 
-### Token登录
-- **路径**: `/login/loginByToken`
+### Token登录(刷新令牌)
+- **路径**: `/login/refreshToken`
 - **方法**: `POST`
 - **参数**:
 ```json
