@@ -26,7 +26,7 @@ public class AuthMiddleware
     private readonly RequestDelegate _next;
     private readonly AuthMiddlewareOptions _options;
     
-    public AuthMiddleware(RequestDelegate next, AuthMiddlewareOptions options)
+    public AuthMiddleware(RequestDelegate next, AuthMiddlewareOptions? options=null)
     {
         _next = next;
         _options = options ?? new AuthMiddlewareOptions();

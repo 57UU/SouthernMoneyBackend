@@ -207,6 +207,25 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
     ]
 }
 ```
+### 搜索帖子
+- **路径**: `/posts/search?query={query}`
+- **方法**: `GET`
+- **参数**:
+  - `query`: 搜索关键词（必填）
+- **成功响应**:
+```json
+{
+    "TotalPages": 10,
+    "CurrentPage": 1,
+    "PageSize": 10,
+    "Posts": [
+        {
+            ...
+        },
+    ]
+}
+```
+
 ### 举报帖子
 - **路径**: `/posts/report`
 - **方法**: `POST`
@@ -251,7 +270,6 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
     ]
 }
 ```
-
 
 ## user
 ### 获取profile
