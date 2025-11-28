@@ -2,6 +2,7 @@ using Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SouthernMoneyBackend.Middleware;
+using System.Text.Json;
 
 // 配置Web应用程序 创建host 启动kestrel服务器
 var builder = WebApplication.CreateBuilder(args);
@@ -14,7 +15,10 @@ if (File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "appsettings.Secre
 
 // 注入依赖
 
-builder.Services.AddControllers();  // 将使用控制器写web api 整套功能注入到应用
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.PropertyNamingPolicy = null; // 禁用小写转换
+});  // 将使用控制器写web api 整套功能注入到应用
 builder.Services.AddOpenApi();  // 注册生成openai/swagger文档的服务
 
 // 尝试连接PostgreSQL，失败则回退到SQLite

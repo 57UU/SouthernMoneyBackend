@@ -19,7 +19,9 @@ public class AuthMiddlewareOptions
 }
 
 /// <summary>
-/// JWT认证中间件，验证Authorization请求头中的Bearer令牌
+/// JWT认证中间件，验证Authorization请求头中的Bearer令牌，并将其保存在HttpContext.Items中。
+/// 若不存在，则不保存在context.Items中。
+/// 若JWT错误，则返回401错误。
 /// </summary>
 public class AuthMiddleware
 {
@@ -32,33 +34,16 @@ public class AuthMiddleware
         _options = options ?? new AuthMiddlewareOptions();
     }
     public async Task InvokeAsync(HttpContext context, UserService userService){
-        if (_options.Enable)
-        {
-            await _verify(context, userService);
-        }else{
-            try{
-                await _verify(context, userService);
-            }catch(Exception){
-                //ignore
-            }
-        }
+        await _verify(context, userService);
         await _next(context);
     }
     public async Task _verify(HttpContext context, UserService userService)
-    {
-        // 登录与开放文档（swagger/openapi）不做认证
-        if (context.Request.Path.StartsWithSegments("/login")
-            || context.Request.Path.StartsWithSegments("/swagger")
-            || context.Request.Path.StartsWithSegments("/openapi"))
-        {
-            return;
-        }
-        
+    {        
         // 获取Authorization请求头
         if (!context.Request.Headers.TryGetValue("Authorization", out var authHeader))
         {
-            context.Response.StatusCode = 401;
-            await context.Response.WriteAsJsonAsync(ApiResponse.Fail("Authorization header is required"));
+            // context.Response.StatusCode = 401;
+            // await context.Response.WriteAsJsonAsync(ApiResponse.Fail("Authorization header is required"));
             return;
         }
         
@@ -66,8 +51,8 @@ public class AuthMiddleware
         // 验证Authorization头格式是否为Bearer token
         if (!authHeaderValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
         {
-            context.Response.StatusCode = 401;
-            await context.Response.WriteAsJsonAsync(ApiResponse.Fail("Authorization header must be in format: Bearer {token}"));
+            // context.Response.StatusCode = 401;
+            // await context.Response.WriteAsJsonAsync(ApiResponse.Fail("Authorization header must be in format: Bearer {token}"));
             return;
         }
         

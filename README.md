@@ -67,6 +67,15 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
     "Timestamp": "2023-10-01T12:00:00Z"
 }
 ```
+## Test 检查server是否运行
+- **路径**: `/test`
+- **方法**: `GET`
+- **成功响应**:
+```json
+{
+    "message": "Server is running"
+}
+```
 
 ## login
 ### 注册用户
