@@ -32,8 +32,8 @@ public class LoginController : ControllerBase
     {
         try
         {
-            var token = await userService.LoginByPassword(request.Name, request.Password);
-            return ApiResponse.Ok(new { token = token });
+            var (token, refreshToken) = await userService.LoginByPassword(request.Name, request.Password);
+            return ApiResponse.Ok(new { Token = token, RefreshToken = refreshToken });
         }
         catch (Exception e)
         {
@@ -42,14 +42,15 @@ public class LoginController : ControllerBase
     }
     
     [HttpPost("refreshToken", Name = "RefreshToken")]
-    public async Task<ApiResponse<object>> RefreshToken([FromBody] LoginByTokenRequest request)
+    public async Task<ApiResponse<object>> RefreshToken([FromBody] RefreshTokenRequest request)
     {
         try
         {
-            var newToken = await userService.RefreshToken(request.Token);
-            if (newToken != null)
+            var tokenPair = await userService.RefreshToken(request.RefreshToken);
+            if (tokenPair != null)
             {
-                return ApiResponse.Ok(new { token = newToken });
+                var (newToken, newRefreshToken) = tokenPair.Value;
+                return ApiResponse.Ok(new { token = newToken, refreshToken = newRefreshToken });
             }
             else
             {

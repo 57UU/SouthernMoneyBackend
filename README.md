@@ -103,6 +103,7 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 ```json
 {
     "Token": "登录令牌",
+    "RefreshToken": "刷新令牌"
 }
 ```
 
@@ -112,13 +113,16 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 - **参数**:
 ```json
 {
-    "Token": "登录令牌"
+    "RefreshToken": "刷新令牌"
 }
 ```
 - **成功响应**:
-  - `200 OK`: 返回Session对象
-- **错误响应**:
-  - `400 Bad Request`: 包含错误信息
+```json
+{
+    "Token": "登录令牌",
+    "RefreshToken": "刷新令牌"
+}
+```
 
 ## images
 ### 上传图片
@@ -513,7 +517,7 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 ### JWT认证
 *：在development环境下，禁用了JWT认证
 
-所有非登录相关的API（即非`/login/*`路径）都需要在请求头中提供以下认证信息：
+所有非登录相关的API（即非`/login/*`,`/test`路径）都需要在请求头中提供以下认证信息：
 
 ```
 Authorization: Bearer <jwt_token>
@@ -533,4 +537,4 @@ Authorization: Bearer <jwt_token>
   ```
 
 ### 令牌刷新
-- 可以通过`/login/refreshToken`端点刷新即将过期的令牌
+- 可以通过`/login/refreshToken`端点使用refresh token刷新过期的令牌(一般来说,refresh token的过期时间要比jwt token长)

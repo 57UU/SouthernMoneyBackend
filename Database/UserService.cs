@@ -34,7 +34,7 @@ public class UserService
     /// <param name="password"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public async Task<string> LoginByPassword(string name, string password)
+    public async Task<(string token, string refreshToken)> LoginByPassword(string name, string password)
     {
         var user= await context.Users.FirstOrDefaultAsync(u => u.Name == name) 
             ?? throw new Exception("User not found");
@@ -45,7 +45,10 @@ public class UserService
         }
         
         // 生成JWT令牌
-        return JwtUtils.GenerateToken(user.Id, user.IsAdmin);
+        var token = JwtUtils.GenerateToken(user.Id, user.IsAdmin);
+        // 生成Refresh Token
+        var refreshToken = JwtUtils.GenerateRefreshToken(user.Id);
+        return (token, refreshToken);
     }
     /// <summary>
     /// validate JWT token
@@ -89,18 +92,31 @@ public class UserService
     }
     
     /// <summary>
-    /// 刷新JWT令牌
+    /// 使用Refresh Token刷新JWT令牌
     /// </summary>
-    /// <param name="token"></param>
-    /// <returns></returns>
-    public async Task<string?> RefreshToken(string token)
+    /// <param name="refreshToken">Refresh Token</param>
+    /// <returns>新的Access Token和Refresh Token对，如果无效则返回null</returns>
+    public async Task<(string token, string refreshToken)?> RefreshToken(string refreshToken)
     {
-        var user = await GetUserByToken(token);
+        // 验证refresh token并获取用户ID
+        var userId = JwtUtils.ValidateRefreshToken(refreshToken);
+        if (!userId.HasValue)
+        {
+            return null;
+        }
+        
+        // 获取用户信息
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId.Value);
         if (user == null)
         {
             return null;
         }
-        return JwtUtils.GenerateToken(user.Id, user.IsAdmin);
+        
+        // 生成新的access token和refresh token
+        var newToken = JwtUtils.GenerateToken(user.Id, user.IsAdmin);
+        var newRefreshToken = JwtUtils.GenerateRefreshToken(user.Id);
+        
+        return (newToken, newRefreshToken);
     }
     /// <summary>
     /// update user info

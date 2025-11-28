@@ -14,7 +14,8 @@ public static class JwtUtils
     private static readonly string SecretKey = GenerateSecretKey();
     private static readonly string Issuer = "SouthernMoneyBackend";        
     private static readonly string Audience = "SouthernMoneyFrontend";        
-    private static readonly int TokenExpiryHours = 24*7;
+    private static readonly int TokenExpiryHours = 1; // 缩短为1小时
+    private static readonly int RefreshTokenExpiryDays = 7; // Refresh token有效期为7天
     private static string GenerateSecretKey()
     {
         return Guid.NewGuid().ToString("N");
@@ -47,6 +48,82 @@ public static class JwtUtils
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    /// <summary>
+    /// 生成Refresh Token
+    /// </summary>
+    public static string GenerateRefreshToken(long userId)
+    {
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+            new Claim("token_type", "refresh")
+        };
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SecretKey));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            issuer: Issuer,
+            audience: Audience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddDays(RefreshTokenExpiryDays),
+            signingCredentials: creds);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    /// <summary>
+    /// 验证Refresh Token并返回用户ID
+    /// </summary>
+    public static long? ValidateRefreshToken(string refreshToken)
+    {
+        try
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SecretKey));
+
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = Issuer,
+                ValidAudience = Audience,
+                IssuerSigningKey = key
+            };
+
+            var principal = tokenHandler.ValidateToken(refreshToken, validationParameters, out _);
+            
+            // 检查是否为refresh token
+            var tokenType = principal?.FindFirst("token_type")?.Value;
+            if (tokenType != "refresh")
+            {
+                return null;
+            }
+
+            return GetUserId(principal);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 使用Refresh Token生成新的Access Token
+    /// </summary>
+    public static string? GenerateAccessTokenFromRefreshToken(string refreshToken, bool isAdmin = false)
+    {
+        var userId = ValidateRefreshToken(refreshToken);
+        if (userId == null)
+        {
+            return null;
+        }
+
+        return GenerateToken(userId.Value, isAdmin);
     }
 
     /// <summary>

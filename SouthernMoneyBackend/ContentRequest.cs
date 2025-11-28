@@ -12,9 +12,9 @@ public class LoginByPasswordRequest
     public string Name { get; set; }
     public string Password { get; set; }
 }
-public class LoginByTokenRequest
+public class RefreshTokenRequest
 {
-    public string Token { get; set; }
+    public string RefreshToken { get; set; }
 }
 public class PostRequest{
     public string Title { get; set; }
