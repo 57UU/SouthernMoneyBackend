@@ -4,7 +4,7 @@ project_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 # 发布优化版本
 echo "开始发布优化版本..."
-if ! dotnet publish MerryBot/MerryBot.csproj -c Release \
+if ! dotnet publish SouthernMoneyBackend/SouthernMoneyBackend.csproj -c Release \
     -r $runtime \
     --self-contained false \
     -p:PublishTrimmed=false \
@@ -22,8 +22,8 @@ fi
 
 # 运行应用程序
 echo "启动应用程序..."
-cd MerryBot/bin/Release/net10.0/$runtime/publish
-./MerryBot
+cd SouthernMoneyBackend/bin/Release/net10.0/$runtime/publish
+./SouthernMoneyBackend
 
 
 
