@@ -3,15 +3,15 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Database;
+namespace Service;
 
 /// <summary>
 /// manage user and session
 /// </summary>
 public class UserService
 {
-    private AppDbContext context;
-    public UserService(AppDbContext context)
+    private Database.AppDbContext context;
+    public UserService(Database.AppDbContext context)
     {
         this.context = context;
     }
@@ -20,10 +20,10 @@ public class UserService
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    public async Task RegisterUser(User user)
+    public async Task RegisterUser(Database.User user)
     {
         //hash passwd
-        user.Password = Utils.HashPassword(user.Password);
+        user.Password = Database.Utils.HashPassword(user.Password);
         context.Users.Add(user);
         await context.SaveChangesAsync();
     }
@@ -39,7 +39,7 @@ public class UserService
         var user= await context.Users.FirstOrDefaultAsync(u => u.Name == name) 
             ?? throw new Exception("User not found");
         //verify password
-        if (!Utils.VerifyPassword(password, user.Password))
+        if (!Database.Utils.VerifyPassword(password, user.Password))
         {
             throw new Exception("Password not match");
         }
@@ -81,7 +81,7 @@ public class UserService
     /// </summary>
     /// <param name="token"></param>
     /// <returns></returns>
-    public async Task<User?> GetUserByToken(string token)
+    public async Task<Database.User?> GetUserByToken(string token)
     {
         var userId = GetUserIdByToken(token);
         if (!userId.HasValue)
@@ -123,7 +123,7 @@ public class UserService
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    public async Task UpdateUser(long userId, User user)
+    public async Task UpdateUser(long userId, Database.User user)
     {
         var existingUser = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
         if (existingUser == null)

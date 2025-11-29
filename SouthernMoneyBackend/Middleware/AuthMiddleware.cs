@@ -4,6 +4,7 @@ using Database;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using SouthernMoneyBackend.Utils;
+using Service;
 
 namespace SouthernMoneyBackend.Middleware;
 

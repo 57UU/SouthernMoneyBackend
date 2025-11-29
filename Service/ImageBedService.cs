@@ -1,17 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace Database;
+namespace Service;
 
 public class ImageBedService
 {
-    private readonly AppDbContext dbContext;
-    public ImageBedService(AppDbContext dbContext)
+    private readonly Database.AppDbContext dbContext;
+    public ImageBedService(Database.AppDbContext dbContext)
     {
         this.dbContext = dbContext;
     }
     public async Task<Guid> UploadImageAsync(byte[] imageData,long userId,string imageType,string? description=null)
     {
-        var image = new Image
+        var image = new Database.Image
         {
             Id = Guid.NewGuid(),
             UploaderUserId = userId,
@@ -23,11 +23,11 @@ public class ImageBedService
         await dbContext.SaveChangesAsync();
         return image.Id;
     }
-    public async Task<Image?> GetImageAsync(Guid imageId)
+    public async Task<Database.Image?> GetImageAsync(Guid imageId)
     {
         return await dbContext.Images.FindAsync(imageId);
     }
-    public async Task<ICollection<Image>> GetImagesByUser(long userId)
+    public async Task<ICollection<Database.Image>> GetImagesByUser(long userId)
     {
         return await dbContext.Images.Where(x=>x.UploaderUserId==userId).ToArrayAsync();
     }

@@ -2,12 +2,12 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Database;
+namespace Service;
 
 public class PostService
 {
-    private readonly AppDbContext dbContext;
-    public PostService(AppDbContext dbContext)
+    private readonly Database.AppDbContext dbContext;
+    public PostService(Database.AppDbContext dbContext)
     {
         this.dbContext = dbContext;
     }
@@ -23,7 +23,7 @@ public class PostService
             throw new ArgumentException("Content is required");
         }
         
-        var post = new Post
+        var post = new Database.Post
         {
             Id = Guid.NewGuid(),
             UploaderUserId = userId,
@@ -38,7 +38,7 @@ public class PostService
         {
             foreach (var tag in tags.Where(t => !string.IsNullOrWhiteSpace(t)))
             {
-                post.PostTags.Add(new PostTags
+                post.PostTags.Add(new Database.PostTags
                 {
                     PostId = post.Id,
                     Tag = tag.Trim()
@@ -62,7 +62,7 @@ public class PostService
                     throw new ArgumentException($"Image not found: {imageId}");
                 }
                 
-                post.PostImages.Add(new PostImage
+                post.PostImages.Add(new Database.PostImage
                 {
                     PostId = post.Id,
                     ImageId = imageId
@@ -75,7 +75,7 @@ public class PostService
         return post.Id;
     }
     
-    public async Task<Post?> GetPostAsync(Guid postId)
+    public async Task<Database.Post?> GetPostAsync(Guid postId)
     {
         return await dbContext.Posts
             .Include(p => p.User)
@@ -181,7 +181,7 @@ public class PostService
             return post.LikeCount;
         }
         
-        dbContext.PostLikes.Add(new PostLike
+        dbContext.PostLikes.Add(new Database.PostLike
         {
             PostId = postId,
             UserId = userId
@@ -204,13 +204,13 @@ public class PostService
 
 public class PostDetailResult
 {
-    public Post Post { get; set; } = null!;
+    public Database.Post Post { get; set; } = null!;
     public bool IsLiked { get; set; }
 }
 
 public class PagedPostsResult
 {
-    public List<Post> Posts { get; set; } = new();
+    public List<Database.Post> Posts { get; set; } = new();
     public HashSet<Guid> LikedPostIds { get; set; } = new();
     public int TotalCount { get; set; }
 }
