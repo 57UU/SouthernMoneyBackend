@@ -22,6 +22,17 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });  // 将使用控制器写web api 整套功能注入到应用
 builder.Services.AddOpenApi();  // 注册生成openai/swagger文档的服务
 
+// 配置CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // 尝试连接PostgreSQL，失败则回退到SQLite
 string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 bool usePostgres = Utils.IsPostgreSqlAvailable(connectionString);
@@ -66,6 +77,9 @@ if (isDevEnv)
 
 
 //Note:中间件的顺序不要弄错
+// 添加CORS中间件
+app.UseCors("AllowAll");
+
 // 添加异常处理中间件
 app.UseMiddleware<ExceptionHandlerMiddleware>(new ExceptionHandlerMiddlewareOptions
 {
