@@ -30,6 +30,8 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 访问`/swagger`即可查看API可视化文档
 
 # API细节
+为了简化模型，需要数据就用GET，执行动作就用POST
+
 通用准则：所有接口均返回`ApiResponse<T>`对象，其中`T`是具体的响应数据类型。
 格式如下：
 ```json
@@ -264,6 +266,21 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 }
 ```
 
+### 删除帖子
+- **路径**: `/posts/delete`
+- **方法**: `POST`
+- **参数**:
+```json
+{
+    "PostId": "帖子ID"
+}
+```
+- **成功响应**:
+  - `200 OK`
+- **错误响应**:
+  - `404 Not Found`: 帖子不存在
+  - `403 Forbidden`: 无权限删除（非帖子作者或管理员）
+
 ### 我的贴子
 - **路径**: `/posts/myPosts?page={page}&pageSize={pageSize}`
 - **方法**: `GET`
@@ -285,17 +302,18 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 ```
 
 ## user
-### 获取profile
+### 获取用户信息
 - **路径**: `/user/profile`
 - **方法**: `GET`
 - **成功响应**:
 ```json
 {
+    "Id": 123123,
     "Name": "用户名",
-    "Id":123123,
     "Email": "用户邮箱",
     "Avatar": "图片ID",
     "IsBlocked": false, //bool
+    "CreatedAt": "2023-01-01T00:00:00Z", //datetime
     "Asset": {
         "Total":10000,
         "TodayEarn":100,
@@ -306,16 +324,51 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 }
 ```
 
-
-### update
+### 更新用户信息
 - **路径**: `/user/update`
 - **方法**: `POST`
 - **参数**:
 ```json
 {
     "Name": "用户名",
-    "Email": "用户邮箱",
-    "Avatar": "图片ID"
+    "Email": "用户邮箱"
+}
+```
+- **成功响应**:
+  - `200 OK`
+
+### 修改密码
+- **路径**: `/user/changePassword`
+- **方法**: `POST`
+- **参数**:
+```json
+{
+    "CurrentPassword": "当前密码",
+    "NewPassword": "新密码"
+}
+```
+- **成功响应**:
+  - `200 OK`
+
+
+### 上传头像
+- **路径**: `/user/uploadAvatar`
+- **方法**: `POST`
+- **参数**(form):
+  - `file`: 图片文件（必填，最大2MB）
+- **成功响应**:
+  - `200 OK`: 返回`{ "AvatarId": "头像图片ID" }`
+- **错误响应**:
+  - `400 Bad Request`: 包含错误信息（如文件为空、文件大小超过限制）
+  - `401 Unauthorized`: 认证失败
+
+### topup
+- **路径**: `/user/topup`
+- **方法**: `POST`
+- **参数**:
+```json
+{
+    "Amount": 100.00 //decimal
 }
 ```
 - **成功响应**:
