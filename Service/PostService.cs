@@ -6,10 +6,13 @@ namespace Service;
 
 public class PostService
 {
-    private readonly Database.AppDbContext dbContext;
-    public PostService(Database.AppDbContext dbContext)
+    private readonly Database.Repositories.PostRepository postRepository;
+    private readonly Database.Repositories.ImageRepository imageRepository;
+    
+    public PostService(Database.Repositories.PostRepository postRepository, Database.Repositories.ImageRepository imageRepository)
     {
-        this.dbContext = dbContext;
+        this.postRepository = postRepository;
+        this.imageRepository = imageRepository;
     }
     
     public async Task<Guid> CreatePostAsync(long userId, string title, string content, ICollection<string>? images, ICollection<string>? tags)
@@ -56,8 +59,8 @@ public class PostService
                     throw new ArgumentException($"Invalid image id: {imageStr}");
                 }
                 
-                var imageExists = await dbContext.Images.AnyAsync(i => i.Id == imageId);
-                if (!imageExists)
+                var imageExists = await imageRepository.GetImageByIdAsync(imageId);
+                if (imageExists == null)
                 {
                     throw new ArgumentException($"Image not found: {imageId}");
                 }
@@ -70,34 +73,27 @@ public class PostService
             }
         }
         
-        dbContext.Posts.Add(post);
-        await dbContext.SaveChangesAsync();
+        await postRepository.AddPostAsync(post);
         return post.Id;
     }
     
     public async Task<Database.Post?> GetPostAsync(Guid postId)
     {
-        return await dbContext.Posts
-            .Include(p => p.User)
-            .Include(p => p.PostImages)
-            .Include(p => p.PostTags)
-            .FirstOrDefaultAsync(p => p.Id == postId);
+        return await postRepository.GetPostByIdAsync(postId);
     }
     
     public async Task<PostDetailResult> GetPostDetailAsync(Guid postId, long currentUserId)
     {
-        var post = await dbContext.Posts
-            .Include(p => p.User)
-            .Include(p => p.PostImages)
-            .Include(p => p.PostTags)
-            .FirstOrDefaultAsync(p => p.Id == postId)
-            ?? throw new KeyNotFoundException("Post not found");
+        var post = await postRepository.GetPostByIdAsync(postId);
+        if (post == null)
+        {
+            throw new KeyNotFoundException("Post not found");
+        }
         
         // 增加浏览量
-        post.ViewCount += 1;
-        await dbContext.SaveChangesAsync();
+        await postRepository.IncrementPostViewCountAsync(postId);
         
-        bool isLiked = await dbContext.PostLikes.AnyAsync(pl => pl.PostId == postId && pl.UserId == currentUserId);
+        bool isLiked = await postRepository.IsPostLikedByUserAsync(postId, currentUserId);
         return new PostDetailResult
         {
             Post = post,
@@ -110,29 +106,26 @@ public class PostService
         if (page <= 0) page = 1;
         if (pageSize <= 0) pageSize = 10;
         
-        var query = dbContext.Posts
-            .Include(p => p.User)
-            .Include(p => p.PostImages)
-            .Include(p => p.PostTags)
-            .AsNoTracking();
-        
-        var totalCount = await query.CountAsync();
-        var posts = await query
-            .OrderByDescending(p => p.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        var posts = await postRepository.GetAllPostsAsync(page, pageSize);
+        var totalCount = await postRepository.GetPostCountAsync();
         
         var postIds = posts.Select(p => p.Id).ToList();
-        var likedIds = await dbContext.PostLikes
-            .Where(pl => pl.UserId == currentUserId && postIds.Contains(pl.PostId))
-            .Select(pl => pl.PostId)
-            .ToListAsync();
+        var likedPosts = new List<Database.PostLike>();
+        
+        foreach (var postId in postIds)
+        {
+            if (await postRepository.IsPostLikedByUserAsync(postId, currentUserId))
+            {
+                likedPosts.Add(new Database.PostLike { PostId = postId, UserId = currentUserId });
+            }
+        }
+        
+        var likedIds = likedPosts.Select(pl => pl.PostId).ToHashSet();
         
         return new PagedPostsResult
         {
             Posts = posts,
-            LikedPostIds = likedIds.ToHashSet(),
+            LikedPostIds = likedIds,
             TotalCount = totalCount
         };
     }
@@ -142,63 +135,120 @@ public class PostService
         if (page <= 0) page = 1;
         if (pageSize <= 0) pageSize = 10;
         
-        var query = dbContext.Posts
-            .Include(p => p.User)
-            .Include(p => p.PostImages)
-            .Include(p => p.PostTags)
-            .Where(p => p.UploaderUserId == userId)
-            .AsNoTracking();
-        
-        var totalCount = await query.CountAsync();
-        var posts = await query
-            .OrderByDescending(p => p.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        var posts = await postRepository.GetPostsByUserIdAsync(userId, page, pageSize);
+        var totalCount = await postRepository.GetUserPostCountAsync(userId);
         
         var postIds = posts.Select(p => p.Id).ToList();
-        var likedIds = await dbContext.PostLikes
-            .Where(pl => pl.UserId == userId && postIds.Contains(pl.PostId))
-            .Select(pl => pl.PostId)
-            .ToListAsync();
+        var likedPosts = new List<Database.PostLike>();
+        
+        foreach (var postId in postIds)
+        {
+            if (await postRepository.IsPostLikedByUserAsync(postId, userId))
+            {
+                likedPosts.Add(new Database.PostLike { PostId = postId, UserId = userId });
+            }
+        }
+        
+        var likedIds = likedPosts.Select(pl => pl.PostId).ToHashSet();
         
         return new PagedPostsResult
         {
             Posts = posts,
-            LikedPostIds = likedIds.ToHashSet(),
+            LikedPostIds = likedIds,
             TotalCount = totalCount
         };
     }
     
     public async Task<int> LikePostAsync(Guid postId, long userId)
     {
-        var post = await dbContext.Posts.FirstOrDefaultAsync(p => p.Id == postId)
-            ?? throw new KeyNotFoundException("Post not found");
+        var post = await postRepository.GetPostByIdAsync(postId);
+        if (post == null)
+        {
+            throw new KeyNotFoundException("Post not found");
+        }
         
-        var alreadyLiked = await dbContext.PostLikes.AnyAsync(pl => pl.PostId == postId && pl.UserId == userId);
+        var alreadyLiked = await postRepository.IsPostLikedByUserAsync(postId, userId);
         if (alreadyLiked)
         {
             return post.LikeCount;
         }
         
-        dbContext.PostLikes.Add(new Database.PostLike
+        return await postRepository.AddPostLikeAsync(postId, userId);
+    }
+    
+    public async Task<int> UnlikePostAsync(Guid postId, long userId)
+    {
+        var post = await postRepository.GetPostByIdAsync(postId);
+        if (post == null)
         {
-            PostId = postId,
-            UserId = userId
-        });
-        post.LikeCount += 1;
-        await dbContext.SaveChangesAsync();
-        return post.LikeCount;
+            throw new KeyNotFoundException("Post not found");
+        }
+        
+        var alreadyLiked = await postRepository.IsPostLikedByUserAsync(postId, userId);
+        if (!alreadyLiked)
+        {
+            return post.LikeCount;
+        }
+        
+        return await postRepository.RemovePostLikeAsync(postId, userId);
     }
     
     public async Task<int> ReportPostAsync(Guid postId, string reason)
     {
-        var post = await dbContext.Posts.FirstOrDefaultAsync(p => p.Id == postId)
-            ?? throw new KeyNotFoundException("Post not found");
+        var post = await postRepository.GetPostByIdAsync(postId);
+        if (post == null)
+        {
+            throw new KeyNotFoundException("Post not found");
+        }
         
-        post.ReportCount += 1;
-        await dbContext.SaveChangesAsync();
+        await postRepository.ReportPostAsync(postId);
         return post.ReportCount;
+    }
+    
+    public async Task<bool> DeletePostAsync(Guid postId, long userId)
+    {
+        var post = await postRepository.GetPostByIdAsync(postId);
+        if (post == null)
+        {
+            return false;
+        }
+        
+        // 只有帖子作者或管理员可以删除帖子
+        if (post.UploaderUserId != userId)
+        {
+            throw new UnauthorizedAccessException("You can only delete your own posts");
+        }
+        
+        return await postRepository.DeletePostAsync(postId);
+    }
+    
+    public async Task<bool> UpdatePostAsync(Guid postId, long userId, string? title = null, string? content = null)
+    {
+        var post = await postRepository.GetPostByIdAsync(postId);
+        if (post == null)
+        {
+            return false;
+        }
+        
+        // 只有帖子作者可以编辑帖子
+        if (post.UploaderUserId != userId)
+        {
+            throw new UnauthorizedAccessException("You can only edit your own posts");
+        }
+        
+        if (!string.IsNullOrWhiteSpace(title))
+        {
+            post.Title = title;
+        }
+        
+        if (!string.IsNullOrWhiteSpace(content))
+        {
+            post.Content = content;
+        }
+        
+        post.CreatedAt = DateTime.UtcNow;
+        await postRepository.UpdatePostAsync(post);
+        return true;
     }
 }
 

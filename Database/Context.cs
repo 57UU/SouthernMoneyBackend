@@ -11,6 +11,7 @@ public class AppDbContext : DbContext
     public DbSet<Image> Images { get; set; }
     public DbSet<Post> Posts { get; set; }
     public DbSet<PostImage> PostImages { get; set; }
+    public DbSet<PostTags> PostTags { get; set; }
     public DbSet<PostLike> PostLikes { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)

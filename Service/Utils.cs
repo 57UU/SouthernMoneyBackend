@@ -1,6 +1,4 @@
-
-
-namespace Database;
+namespace Service;
 
 public static class Utils
 {

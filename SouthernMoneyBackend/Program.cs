@@ -39,7 +39,11 @@ else
         options.UseSqlite($"Data Source=data.db"));
 }
 
-// 注入自定义服务
+// 注入数据访问层
+builder.Services.AddScoped<Database.Repositories.UserRepository>();
+builder.Services.AddScoped<Database.Repositories.PostRepository>();
+builder.Services.AddScoped<Database.Repositories.ImageRepository>();
+// 注入业务逻辑层
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PostService>();
 builder.Services.AddScoped<ImageBedService>();

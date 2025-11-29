@@ -10,11 +10,13 @@ namespace Service;
 /// </summary>
 public class UserService
 {
-    private Database.AppDbContext context;
-    public UserService(Database.AppDbContext context)
+    private readonly Database.Repositories.UserRepository _userRepository;
+    
+    public UserService(Database.Repositories.UserRepository userRepository)
     {
-        this.context = context;
+        _userRepository = userRepository;
     }
+    
     /// <summary>
     /// register a new user
     /// </summary>
@@ -22,11 +24,18 @@ public class UserService
     /// <returns></returns>
     public async Task RegisterUser(Database.User user)
     {
+        // 检查用户名是否已存在
+        var existingUser = await _userRepository.GetUserByNameAsync(user.Name);
+        if (existingUser != null)
+        {
+            throw new Exception("Username already exists");
+        }
+        
         //hash passwd
-        user.Password = Database.Utils.HashPassword(user.Password);
-        context.Users.Add(user);
-        await context.SaveChangesAsync();
+        user.Password = Utils.HashPassword(user.Password);
+        await _userRepository.AddUserAsync(user);
     }
+    
     /// <summary>
     /// login by password and return a JWT token
     /// </summary>
@@ -36,10 +45,11 @@ public class UserService
     /// <exception cref="Exception"></exception>
     public async Task<(string token, string refreshToken)> LoginByPassword(string name, string password)
     {
-        var user= await context.Users.FirstOrDefaultAsync(u => u.Name == name) 
+        var user = await _userRepository.GetUserByNameAsync(name) 
             ?? throw new Exception("User not found");
+            
         //verify password
-        if (!Database.Utils.VerifyPassword(password, user.Password))
+        if (!Utils.VerifyPassword(password, user.Password))
         {
             throw new Exception("Password not match");
         }
@@ -50,6 +60,7 @@ public class UserService
         var refreshToken = JwtUtils.GenerateRefreshToken(user.Id);
         return (token, refreshToken);
     }
+    
     /// <summary>
     /// validate JWT token
     /// </summary>
@@ -88,7 +99,7 @@ public class UserService
         {
             return null;
         }
-        return await context.Users.FirstOrDefaultAsync(u => u.Id == userId.Value);
+        return await _userRepository.GetUserByIdAsync(userId.Value);
     }
     
     /// <summary>
@@ -106,7 +117,7 @@ public class UserService
         }
         
         // 获取用户信息
-        var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId.Value);
+        var user = await _userRepository.GetUserByIdAsync(userId.Value);
         if (user == null)
         {
             return null;
@@ -118,21 +129,64 @@ public class UserService
         
         return (newToken, newRefreshToken);
     }
+    
     /// <summary>
     /// update user info
     /// </summary>
+    /// <param name="userId"></param>
     /// <param name="user"></param>
     /// <returns></returns>
     public async Task UpdateUser(long userId, Database.User user)
     {
-        var existingUser = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        var existingUser = await _userRepository.GetUserByIdAsync(userId);
         if (existingUser == null)
         {
             throw new Exception("User not found");
         }
+        
+        // 如果用户名有变化，检查新用户名是否已存在
+        if (existingUser.Name != user.Name)
+        {
+            var userWithSameName = await _userRepository.GetUserByNameAsync(user.Name);
+            if (userWithSameName != null && userWithSameName.Id != userId)
+            {
+                throw new Exception("Username already exists");
+            }
+        }
+        
+        // 更新用户信息
         existingUser.Name = user.Name;
-        existingUser.Password = user.Password;
-        context.Users.Update(existingUser);
-        await context.SaveChangesAsync();
+        
+        // 如果提供了新密码，则更新密码
+        if (!string.IsNullOrEmpty(user.Password))
+        {
+            existingUser.Password = Utils.HashPassword(user.Password);
+        }
+        
+        await _userRepository.UpdateUserAsync(existingUser);
+    }
+    
+    /// <summary>
+    /// 获取所有用户
+    /// </summary>
+    public async Task<List<Database.User>> GetAllUsersAsync()
+    {
+        return await _userRepository.GetAllUsersAsync();
+    }
+    
+    /// <summary>
+    /// 根据ID获取用户
+    /// </summary>
+    public async Task<Database.User?> GetUserByIdAsync(long id)
+    {
+        return await _userRepository.GetUserByIdAsync(id);
+    }
+    
+    /// <summary>
+    /// 删除用户
+    /// </summary>
+    public async Task<bool> DeleteUserAsync(long id)
+    {
+        return await _userRepository.DeleteUserAsync(id);
     }
 }
