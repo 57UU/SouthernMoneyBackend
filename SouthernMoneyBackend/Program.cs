@@ -20,7 +20,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.PropertyNamingPolicy = null; // 禁用小写转换
 });  // 将使用控制器写web api 整套功能注入到应用
-builder.Services.AddOpenApi();  // 注册生成openai/swagger文档的服务
+builder.Services.AddOpenApi();  // 注册生成openapi/swagger文档的服务
 
 // 配置CORS
 builder.Services.AddCors(options =>
