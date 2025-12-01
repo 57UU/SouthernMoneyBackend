@@ -131,4 +131,14 @@ public class PostController : ControllerBase
             }
         };
     }
+    
+    // following is written by hr
+    [HttpGet("search")]
+    public async Task<ApiResponse<PaginatedResponse<PostDto>>> SearchPosts(
+        [FromQuery(Name = "query")] string query,
+        [FromQuery(Name = "page")] int page = 1,
+        [FromQuery(Name = "pageSize")] int pageSize = 10)
+    {
+        throw new NotImplementedException();
+    }
 }
