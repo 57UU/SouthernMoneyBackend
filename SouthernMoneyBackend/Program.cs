@@ -68,11 +68,22 @@ bool isDevEnv = app.Environment.IsDevelopment();
 // 只在开发环境启用swagger ui
 if (isDevEnv)
 {
+    string js=await File.ReadAllTextAsync("Utils/swaggerInject.js");
     app.MapOpenApi(); //add openapi support
+    app.MapGet("/swagger-js", () => js);
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/openapi/v1.json", "v1"); // openapi doc
+        options.InjectJavascript("/swagger-js");
     });
+    //register test user 
+    using (var scope = app.Services.CreateScope())
+    {
+        var userService=scope.ServiceProvider.GetService<UserService>();
+        await userService.RegisterUser(new User { Name="test",Password="123"}, existIsOk: true);
+    }
+    
+
 }
 
 

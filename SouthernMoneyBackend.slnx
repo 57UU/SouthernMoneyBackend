@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="Database/Database.csproj" Id="2e28210e-a5b3-4cfc-9e32-af038f91c60d" />
   <Project Path="SouthernMoneyBackend/SouthernMoneyBackend.csproj" />
+  <Project Path="Service/Service.csproj" />
 </Solution>

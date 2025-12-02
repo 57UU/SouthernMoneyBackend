@@ -22,13 +22,20 @@ public class UserService
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    public async Task RegisterUser(Database.User user)
+    public async Task RegisterUser(Database.User user,bool existIsOk=false)
     {
         // 检查用户名是否已存在
         var existingUser = await _userRepository.GetUserByNameAsync(user.Name);
         if (existingUser != null)
         {
-            throw new Exception("Username already exists");
+            if (existIsOk)
+            {
+                return;
+            }
+            else
+            {
+                throw new Exception("Username already exists");
+            }
         }
         
         //hash passwd
