@@ -374,6 +374,14 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 - **成功响应**:
   - `200 OK`
 
+### 开户
+- **路径**: `/user/openAccount`
+- **方法**: `POST`
+- **参数**:
+无
+- **成功响应**:
+  - `200 OK`
+
 ## store *：待确定
 ### 我发布的商品
 
