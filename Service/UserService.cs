@@ -11,18 +11,18 @@ namespace Service;
 public class UserService
 {
     private readonly Database.Repositories.UserRepository _userRepository;
-    
+
     public UserService(Database.Repositories.UserRepository userRepository)
     {
         _userRepository = userRepository;
     }
-    
+
     /// <summary>
     /// register a new user
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    public async Task RegisterUser(Database.User user,bool existIsOk=false)
+    public async Task RegisterUser(Database.User user, bool existIsOk = false)
     {
         // 检查用户名是否已存在
         var existingUser = await _userRepository.GetUserByNameAsync(user.Name);
@@ -37,12 +37,12 @@ public class UserService
                 throw new Exception("Username already exists");
             }
         }
-        
+
         //hash passwd
         user.Password = Utils.HashPassword(user.Password);
         await _userRepository.AddUserAsync(user);
     }
-    
+
     /// <summary>
     /// login by password and return a JWT token
     /// </summary>
@@ -52,22 +52,22 @@ public class UserService
     /// <exception cref="Exception"></exception>
     public async Task<(string token, string refreshToken)> LoginByPassword(string name, string password)
     {
-        var user = await _userRepository.GetUserByNameAsync(name) 
+        var user = await _userRepository.GetUserByNameAsync(name)
             ?? throw new Exception("User not found");
-            
+
         //verify password
         if (!Utils.VerifyPassword(password, user.Password))
         {
             throw new Exception("Password not match");
         }
-        
+
         // 生成JWT令牌
         var token = JwtUtils.GenerateToken(user.Id, user.IsAdmin);
         // 生成Refresh Token
         var refreshToken = JwtUtils.GenerateRefreshToken(user.Id);
         return (token, refreshToken);
     }
-    
+
     /// <summary>
     /// validate JWT token
     /// </summary>
@@ -78,7 +78,7 @@ public class UserService
         var principal = JwtUtils.ValidateToken(token);
         return principal != null;
     }
-    
+
     /// <summary>
     /// 通过JWT token获取用户ID
     /// </summary>
@@ -93,7 +93,7 @@ public class UserService
         }
         return JwtUtils.GetUserId(principal);
     }
-    
+
     /// <summary>
     /// 通过JWT token获取用户信息
     /// </summary>
@@ -108,7 +108,7 @@ public class UserService
         }
         return await _userRepository.GetUserByIdAsync(userId.Value);
     }
-    
+
     /// <summary>
     /// 使用Refresh Token刷新JWT令牌
     /// </summary>
@@ -122,21 +122,21 @@ public class UserService
         {
             return null;
         }
-        
+
         // 获取用户信息
         var user = await _userRepository.GetUserByIdAsync(userId.Value);
         if (user == null)
         {
             return null;
         }
-        
+
         // 生成新的access token和refresh token
         var newToken = JwtUtils.GenerateToken(user.Id, user.IsAdmin);
         var newRefreshToken = JwtUtils.GenerateRefreshToken(user.Id);
-        
+
         return (newToken, newRefreshToken);
     }
-    
+
     /// <summary>
     /// update user info
     /// </summary>
@@ -150,7 +150,7 @@ public class UserService
         {
             throw new Exception("User not found");
         }
-        
+
         // 如果用户名有变化，检查新用户名是否已存在
         if (existingUser.Name != user.Name)
         {
@@ -160,19 +160,19 @@ public class UserService
                 throw new Exception("Username already exists");
             }
         }
-        
+
         // 更新用户信息
         existingUser.Name = user.Name;
-        
+
         // 如果提供了新密码，则更新密码
         if (!string.IsNullOrEmpty(user.Password))
         {
             existingUser.Password = Utils.HashPassword(user.Password);
         }
-        
+
         await _userRepository.UpdateUserAsync(existingUser);
     }
-    
+
     /// <summary>
     /// 获取所有用户
     /// </summary>
@@ -180,7 +180,7 @@ public class UserService
     {
         return await _userRepository.GetAllUsersAsync();
     }
-    
+
     /// <summary>
     /// 根据ID获取用户
     /// </summary>
@@ -188,7 +188,7 @@ public class UserService
     {
         return await _userRepository.GetUserByIdAsync(id);
     }
-    
+
     /// <summary>
     /// 删除用户
     /// </summary>
@@ -196,4 +196,73 @@ public class UserService
     {
         return await _userRepository.DeleteUserAsync(id);
     }
+
+    /// <summary>
+    /// 封禁用户
+    /// </summary>
+    public async Task BanUser(long userId, string reason)
+    {
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            throw new Exception("User not found");
+        }
+
+        if (user.IsAdmin)
+        {
+            throw new Exception("Cannot ban administrator");
+        }
+
+        if (user.IsBlocked)
+        {
+            throw new Exception("User is already banned");
+        }
+
+        user.IsBlocked = true;
+        user.BlockReason = reason;
+        user.BlockedAt = DateTime.UtcNow;
+
+        await _userRepository.UpdateUserAsync(user);
+    }
+
+    /// <summary>
+    /// 解封用户
+    /// </summary>
+    public async Task UnbanUser(long userId)
+    {
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            throw new Exception("User not found");
+        }
+
+        if (!user.IsBlocked)
+        {
+            throw new Exception("User is not banned");
+        }
+
+        user.IsBlocked = false;
+        user.BlockReason = null;
+        user.BlockedAt = null;
+
+        await _userRepository.UpdateUserAsync(user);
+    }
+
+    /// <summary>
+    /// 检查用户是否被封禁（业务层可复用）
+    /// </summary>
+    public async Task EnsureUserNotBanned(long userId)
+    {
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            throw new Exception("User not found");
+        }
+
+        if (user.IsBlocked)
+        {
+            throw new Exception($"User is banned: {user.BlockReason}");
+        }
+    }
+    
 }

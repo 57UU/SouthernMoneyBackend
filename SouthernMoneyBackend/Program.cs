@@ -73,6 +73,13 @@ builder.Services.AddScoped<ImageBedService>();
 var app = builder.Build();
 bool isDevEnv = app.Environment.IsDevelopment();
 
+// 初始化数据库
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await dbContext.Database.EnsureCreatedAsync();
+}
+
 // Configure the HTTP request pipeline.
 // 只在开发环境启用swagger ui
 if (isDevEnv)
@@ -118,12 +125,7 @@ app.UseAuthorization();
 // 路由匹配到控制器
 app.MapControllers();
 
-// 初始化数据库
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await dbContext.Database.EnsureCreatedAsync();
-}
+
 
 // 运行应用 监听端口等待请求
 app.Run();

@@ -17,10 +17,30 @@ public class User
         {
             Id = new Random().NextInt64(),
             Name = name,
-            Password = password
+            Password = password,
+            IsAdmin = false,
+            HasAccount = false,
+            IsBlocked = false,
+            BlockReason = null,
+            BlockedAt = null
         };
     }
     public bool IsAdmin { get; set; } = false;
+
+    //新增：是否开户
+    public bool HasAccount { get; set; } = false;
+
+    //开户时间
+    public DateTime? AccountOpenedAt { get; set; }  
+
+    //是否封禁
+    public bool IsBlocked { get; set; } = false;
+
+    //封禁原因（可选）
+    public string? BlockReason { get; set; }
+
+    //封禁时间
+    public DateTime? BlockedAt { get; set; }  
 }
 
 
