@@ -11,11 +11,11 @@ namespace SouthernMoneyBackend.Controllers;
 [AuthorizeAdmin]
 public class AdminController : ControllerBase
 {
-    private readonly UserService userService;
+    private readonly AdminService adminService;
 
-    public AdminController(UserService userService)
+    public AdminController(AdminService adminService)
     {
-        this.userService = userService;
+        this.adminService = adminService;
     }
 
     /// <summary>
@@ -38,11 +38,11 @@ public class AdminController : ControllerBase
         {
             if (req.IsBlocked)
             {
-                await userService.BanUser(req.UserId, req.HandleReason ?? "No reason");
+                await adminService.BanUser(req.UserId, req.HandleReason ?? "No reason");
             }
             else
             {
-                await userService.UnbanUser(req.UserId);
+                await adminService.UnbanUser(req.UserId);
             }
 
             return ApiResponse.Ok(req.IsBlocked);

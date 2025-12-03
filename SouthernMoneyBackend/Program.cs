@@ -67,6 +67,7 @@ builder.Services.AddScoped<Database.Repositories.ImageRepository>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PostService>();
 builder.Services.AddScoped<ImageBedService>();
+builder.Services.AddScoped<AdminService>();
 
 
 // 对上面配置好的服务 构建真正实例app
