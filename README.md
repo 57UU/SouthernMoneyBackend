@@ -212,7 +212,7 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 - **成功响应**:
 ```json
 {
-    "TotalPages": 10,
+    "TotalCount": 10,
     "CurrentPage": 1,
     "PageSize": 10,
     "Posts": [
@@ -230,7 +230,7 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 - **成功响应**:
 ```json
 {
-    "TotalPages": 10,
+    "TotalCount": 10,
     "CurrentPage": 1,
     "PageSize": 10,
     "Posts": [
@@ -312,7 +312,7 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 - **成功响应**:
 ```json
 {
-    "TotalPages": 10,
+    "TotalCount": 10,
     "CurrentPage": 1,
     "PageSize": 10,
     "Posts": [
@@ -731,7 +731,7 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 - **成功响应**:
 ```json
 {
-    "TotalPages": 10,
+    "TotalCount": 10,
     "CurrentPage": 1,
     "PageSize": 10,
     "Records": [
