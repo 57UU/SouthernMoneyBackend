@@ -63,11 +63,22 @@ else
 builder.Services.AddScoped<Database.Repositories.UserRepository>();
 builder.Services.AddScoped<Database.Repositories.PostRepository>();
 builder.Services.AddScoped<Database.Repositories.ImageRepository>();
+builder.Services.AddScoped<Database.Repositories.ProductRepository>();
+builder.Services.AddScoped<Database.Repositories.TransactionRepository>();
+builder.Services.AddScoped<Database.Repositories.UserAssetRepository>();
+builder.Services.AddScoped<Database.Repositories.ProductCategoryRepository>();
+builder.Services.AddScoped<Database.Repositories.UserFavoriteCategoryRepository>();
+
 // 注入业务逻辑层
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PostService>();
 builder.Services.AddScoped<ImageBedService>();
 builder.Services.AddScoped<AdminService>();
+builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<TransactionService>();
+builder.Services.AddScoped<UserAssetService>();
+builder.Services.AddScoped<ProductCategoryService>();
+builder.Services.AddScoped<UserFavoriteCategoryService>();
 
 
 // 对上面配置好的服务 构建真正实例app
