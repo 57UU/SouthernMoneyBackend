@@ -16,7 +16,7 @@ public class ImageBedController : ControllerBase
         this.imageBedService = imageBedService;
     }
     const int MaxFileSize = 1024 * 1024 * 2; // 2MB
-    [HttpPost("/upload")]
+    [HttpPost("upload")]
     public async Task<ApiResponse<object>> UploadImageAsync([FromForm]IFormFile file,string imageType,string? description=null)
     {
         if(file==null)
@@ -34,7 +34,7 @@ public class ImageBedController : ControllerBase
         var imageId = await imageBedService.UploadImageAsync(memoryStream.ToArray(),userId,imageType,description);
         return ApiResponse.Ok(new { ImageId = imageId });
     }
-    [HttpGet("/get")]
+    [HttpGet("get")]
     [AllowAnonymous]
     public async Task<ApiResponse<object>> GetImageAsync([FromQuery(Name = "id")] Guid imageId)
     {

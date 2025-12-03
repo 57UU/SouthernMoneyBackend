@@ -40,6 +40,10 @@ public class AuthMiddleware
     }
     public async Task _verify(HttpContext context, UserService userService)
     {        
+        if (context.Request.Path.StartsWithSegments("/openapi", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
         // 获取Authorization请求头
         if (!context.Request.Headers.TryGetValue("Authorization", out var authHeader))
         {

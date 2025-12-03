@@ -8,6 +8,10 @@ public class User
     public long Id { get; set; }
 
     public string Name { get; set; }
+
+    public string? Email { get; set; }
+    
+    public Guid? Avatar { get; set; }
                               
     [JsonIgnore]
     public string Password { get; set; }//this should be hashed
@@ -22,7 +26,9 @@ public class User
             HasAccount = false,
             IsBlocked = false,
             BlockReason = null,
-            BlockedAt = null
+            BlockedAt = null,
+            CreatedAt = DateTime.UtcNow,
+            IsDeleted = false
         };
     }
     public bool IsAdmin { get; set; } = false;
@@ -40,7 +46,22 @@ public class User
     public string? BlockReason { get; set; }
 
     //封禁时间
-    public DateTime? BlockedAt { get; set; }  
+    public DateTime? BlockedAt { get; set; }
+
+    //创建时间
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    //是否删除
+    public bool IsDeleted { get; set; } = false;
+
+    //余额
+    public decimal Balance { get; set; } = 0;
+
+    public ICollection<PostLike> PostLikes { get; set; } = new List<PostLike>();
+    public ICollection<Product> Products { get; set; } = new List<Product>();
+    public ICollection<TransactionRecord> PurchasedProducts { get; set; } = new List<TransactionRecord>();
+    public ICollection<UserFavoriteCategory> FavoriteCategories { get; set; } = new List<UserFavoriteCategory>();
+    public UserAsset? Asset { get; set; }
 }
 
 
@@ -103,5 +124,65 @@ public class PostLike
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
+public class Product
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+    public string Description { get; set; }
+    public Guid CategoryId { get; set; }
+    public ProductCategory Category { get; set; }
+    public long UploaderUserId { get; set; }
+    public User User { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsDeleted { get; set; } = false;
+}
+
+public class UserFavoriteCategory
+{
+    public long UserId { get; set; }
+    public User User { get; set; }
+    
+    public Guid CategoryId { get; set; }
+    public ProductCategory Category { get; set; }
+    
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+
+public class TransactionRecord
+{
+    public Guid Id { get; set; }
+    public Guid ProductId { get; set; }
+    public Product Product { get; set; }
+    public long BuyerUserId { get; set; }
+    public User Buyer { get; set; }
+    public int Quantity { get; set; } = 1;
+    public decimal Price { get; set; }
+    public decimal TotalPrice { get; set; }
+    public DateTime PurchaseTime { get; set; } = DateTime.UtcNow;
+}
+
+public class ProductCategory
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public Guid CoverImageId { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    
+    public ICollection<Product> Products { get; set; } = new List<Product>();
+    public ICollection<UserFavoriteCategory> FavoriteUsers { get; set; } = new List<UserFavoriteCategory>();
+}
+
+public class UserAsset
+{
+    public long UserId { get; set; }
+    public User User { get; set; }
+    public decimal Total { get; set; } = 0;
+    public decimal TodayEarn { get; set; } = 0;
+    public decimal AccumulatedEarn { get; set; } = 0;
+    public decimal EarnRate { get; set; } = 0;
+    public decimal Balance { get; set; } = 0;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
 
 #pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。

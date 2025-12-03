@@ -22,7 +22,7 @@ public class RefreshTokenRequest
 public class PostRequest{
     public string Title { get; set; }
     public string Content { get; set; }
-    public ICollection<string> Images { get; set; }
+    public ICollection<string> ImageIds { get; set; }
     public ICollection<string> Tags { get; set; }
 }
 
@@ -51,6 +51,16 @@ public class GetImageRequest
 public class DeletePostRequest
 {
     public Guid PostId { get; set; } // 帖子ID
+}
+
+// 编辑帖子请求
+public class EditPostRequest
+{
+    public Guid PostId { get; set; } // 帖子ID
+    public string Title { get; set; } // 新标题
+    public string Content { get; set; } // 新内容
+    public ICollection<string> ImageIds { get; set; } // 新图片ID列表
+    public ICollection<string> Tags { get; set; } // 新标签列表
 }
 // Post finished by hr
 // User by hr
@@ -88,9 +98,43 @@ public class BuyProductRequest
     public Guid ProductId { get; set; }
 }
 
+// 发布商品请求
+public class PublishProductRequest
+{
+    public string Name { get; set; } // 商品名称
+    public decimal Price { get; set; } // 商品价格
+    public string Description { get; set; } // 商品描述
+    public Guid CategoryId { get; set; } // 商品分类ID
+}
+
+// 删除商品请求
+public class DeleteProductRequest
+{
+    public Guid ProductId { get; set; } // 商品ID
+}
+
+// 添加分类请求
+public class CreateCategoryRequest
+{
+    public string Category { get; set; } // 商品分类名称
+    public string Cover { get; set; } // 分类封面图片ID
+}
+
 public class HandleUserRequest
 {
     public long UserId { get; set; }
+    public bool IsBlocked { get; set; }
+    public string? HandleReason { get; set; }
+}
+
+public class SetAdminRequest
+{
+    public long UserId { get; set; }
+}
+
+public class HandleReportRequest
+{
+    public Guid PostId { get; set; }
     public bool IsBlocked { get; set; }
     public string? HandleReason { get; set; }
 }

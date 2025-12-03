@@ -25,7 +25,7 @@ public class PostController : ControllerBase
         var userId = HttpContext.GetUserId();
         try
         {
-            var postId = await postService.CreatePostAsync(userId, request.Title, request.Content, request.Images, request.Tags);
+            var postId = await postService.CreatePostAsync(userId, request.Title, request.Content, request.ImageIds, request.Tags);
             return ApiResponse.Ok(new { PostId = postId });
         }
         catch (Exception e)
@@ -41,7 +41,7 @@ public class PostController : ControllerBase
         try
         {
             var detail = await postService.GetPostDetailAsync(postId, userId);
-            var dto = MapToDto(detail.Post, detail.IsLiked);
+            var dto = PostDto.FromPost(detail.Post, detail.IsLiked);
             return ApiResponse<PostDto>.Ok(dto);
         }
         catch (KeyNotFoundException e)
@@ -59,8 +59,8 @@ public class PostController : ControllerBase
     {
         var userId = HttpContext.GetUserId();
         var result = await postService.GetPostsPageAsync(page, pageSize, userId);
-        var dtos = result.Posts.Select(p => MapToDto(p, result.LikedPostIds.Contains(p.Id))).ToList();
-        return PaginatedResponse<PostDto>.Create(dtos, page, pageSize, result.TotalCount);
+        var dtos = result.Posts.Select(p => PostDto.FromPost(p, result.LikedPostIds.Contains(p.Id))).ToList();
+        return PaginatedResponse<PostDto>.CreateApiResponse(dtos, page, pageSize, result.TotalCount);
     }
     
     [HttpGet("myPosts")]
@@ -68,8 +68,8 @@ public class PostController : ControllerBase
     {
         var userId = HttpContext.GetUserId();
         var result = await postService.GetMyPostsAsync(userId, page, pageSize);
-        var dtos = result.Posts.Select(p => MapToDto(p, result.LikedPostIds.Contains(p.Id))).ToList();
-        return PaginatedResponse<PostDto>.Create(dtos, page, pageSize, result.TotalCount);
+        var dtos = result.Posts.Select(p => PostDto.FromPost(p, result.LikedPostIds.Contains(p.Id))).ToList();
+        return PaginatedResponse<PostDto>.CreateApiResponse(dtos, page, pageSize, result.TotalCount);
     }
     
     [HttpPost("like")]
@@ -79,7 +79,7 @@ public class PostController : ControllerBase
         try
         {
             var likeCount = await postService.LikePostAsync(postId, userId);
-            return ApiResponse.Ok(new { LikeCount = likeCount });
+            return ApiResponse.Ok(new PostLikeResultDto { LikeCount = likeCount });
         }
         catch (KeyNotFoundException e)
         {
@@ -97,7 +97,7 @@ public class PostController : ControllerBase
         try
         {
             var reportCount = await postService.ReportPostAsync(request.PostId, request.Reason);
-            return ApiResponse.Ok(new { ReportCount = reportCount });
+            return ApiResponse.Ok(new PostReportResultDto { ReportCount = reportCount });
         }
         catch (KeyNotFoundException e)
         {
@@ -109,27 +109,50 @@ public class PostController : ControllerBase
         }
     }
     
-    private static PostDto MapToDto(Post post, bool isLiked)
+    [HttpPost("delete")]
+    public async Task<ApiResponse> DeletePost([FromBody] DeletePostRequest request)
     {
-        return new PostDto
+        var userId = HttpContext.GetUserId();
+        try
         {
-            Id = post.Id,
-            Title = post.Title,
-            Content = post.Content,
-            CreatedAt = post.CreatedAt,
-            ReportCount = post.ReportCount,
-            ViewCount = post.ViewCount,
-            LikeCount = post.LikeCount,
-            IsBlocked = post.IsBlocked,
-            IsLiked = isLiked,
-            Tags = post.PostTags?.Select(t => t.Tag).ToList() ?? new List<string>(),
-            ImageIds = post.PostImages?.Select(pi => pi.ImageId).ToList() ?? new List<Guid>(),
-            Uploader = post.User == null ? null : new PostUploaderDto
-            {
-                Id = post.User.Id,
-                Name = post.User.Name
-            }
-        };
+            await postService.DeletePostAsync(request.PostId, userId);
+            return ApiResponse.Ok();
+        }
+        catch (KeyNotFoundException e)
+        {
+            return ApiResponse.Fail(e.Message, "POST_NOT_FOUND");
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            return ApiResponse.Fail(e.Message, "UNAUTHORIZED");
+        }
+        catch (Exception e)
+        {
+            return ApiResponse.Fail(e.Message, "DELETE_POST_FAILED");
+        }
+    }
+    
+    [HttpPost("edit")]
+    public async Task<ApiResponse> EditPost([FromBody] EditPostRequest request)
+    {
+        var userId = HttpContext.GetUserId();
+        try
+        {
+            await postService.UpdatePostAsync(request.PostId, userId, request.Title, request.Content);
+            return ApiResponse.Ok();
+        }
+        catch (KeyNotFoundException e)
+        {
+            return ApiResponse.Fail(e.Message, "POST_NOT_FOUND");
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            return ApiResponse.Fail(e.Message, "UNAUTHORIZED");
+        }
+        catch (Exception e)
+        {
+            return ApiResponse.Fail(e.Message, "EDIT_POST_FAILED");
+        }
     }
     
     // following is written by hr
@@ -139,6 +162,20 @@ public class PostController : ControllerBase
         [FromQuery(Name = "page")] int page = 1,
         [FromQuery(Name = "pageSize")] int pageSize = 10)
     {
-        throw new NotImplementedException();
+        var userId = HttpContext.GetUserId();
+        try
+        {
+            var result = await postService.SearchPostsAsync(query, page, pageSize, userId);
+            var dtos = result.Posts.Select(p => PostDto.FromPost(p, result.LikedPostIds.Contains(p.Id))).ToList();
+            return PaginatedResponse<PostDto>.CreateApiResponse(dtos, page, pageSize, result.TotalCount);
+        }
+        catch (ArgumentException e)
+        {
+            return ApiResponse<PaginatedResponse<PostDto>>.Fail(e.Message, "INVALID_SEARCH_QUERY");
+        }
+        catch (Exception e)
+        {
+            return ApiResponse<PaginatedResponse<PostDto>>.Fail(e.Message, "SEARCH_POSTS_FAILED");
+        }
     }
 }

@@ -5,7 +5,14 @@ public static class HttpContextExtensions
 {
     public static long GetUserId(this HttpContext httpContext)
     {
-        return (long)httpContext.Items["UserId"]!;
+        if(httpContext.Items.TryGetValue("UserId", out var userId))
+        {
+            return (long)userId!;
+        }
+        else
+        {
+            throw new Exception("User ID not found");
+        }
     }
 
     public static bool IsAdmin(this HttpContext httpContext)

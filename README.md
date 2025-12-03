@@ -48,7 +48,7 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
     "Success": true,
     "Data": {
         "Token": "登录令牌",
-        "ExpireTime": "2023-10-01T12:00:00Z"
+        "RefreshToken": "刷新令牌"
     },
     "Timestamp": "2023-10-01T12:00:00Z"
 }
@@ -414,12 +414,108 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 - **成功响应**:
 ```json
 {
-    "TotalPages": 10,
+    "TotalCount": 100,
     "CurrentPage": 1,
     "PageSize": 10,
-    "Products": [
+    "Items": [
         {
-            ...
+            "Id": "商品ID",
+            "Name": "商品名称",
+            "Price": 100.00,
+            "Description": "商品描述",
+            "CategoryId": "分类ID",
+            "CategoryName": "分类名称",
+            "UploaderUserId": 123,
+            "UploaderName": "用户名",
+            "CreatedAt": "创建时间"
+        },
+    ]
+}
+```
+
+### 商品列表
+- **路径**: `/store/products?page={page}&pageSize={pageSize}&categoryId={categoryId}&search={search}`
+- **方法**: `GET`
+- **参数**:
+  - `page`: 页码（必填，整数，默认值为1）
+  - `pageSize`: 每页商品数量（必填，整数，默认值为10）
+  - `categoryId`: 分类ID（可选，Guid格式）
+  - `search`: 搜索关键词（可选）
+- **成功响应**:
+```json
+{
+    "TotalCount": 100,
+    "CurrentPage": 1,
+    "PageSize": 10,
+    "Items": [
+        {
+            "Id": "商品ID",
+            "Name": "商品名称",
+            "Price": 100.00,
+            "Description": "商品描述",
+            "CategoryId": "分类ID",
+            "CategoryName": "分类名称",
+            "UploaderUserId": 123,
+            "UploaderName": "用户名",
+            "CreatedAt": "创建时间"
+        },
+    ]
+}
+```
+
+### 根据分类ID获取商品列表
+- **路径**: `/store/categories/{id}/products?page={page}&pageSize={pageSize}`
+- **方法**: `GET`
+- **参数**:
+  - `id`: 分类ID（必填，Guid格式）
+  - `page`: 页码（必填，整数，默认值为1）
+  - `pageSize`: 每页商品数量（必填，整数，默认值为10）
+- **成功响应**:
+```json
+{
+    "TotalCount": 100,
+    "CurrentPage": 1,
+    "PageSize": 10,
+    "Items": [
+        {
+            "Id": "商品ID",
+            "Name": "商品名称",
+            "Price": 100.00,
+            "Description": "商品描述",
+            "CategoryId": "分类ID",
+            "CategoryName": "分类名称",
+            "UploaderUserId": 123,
+            "UploaderName": "用户名",
+            "CreatedAt": "创建时间"
+        },
+    ]
+}
+```
+
+### 搜索商品
+- **路径**: `/store/search?q={query}&page={page}&pageSize={pageSize}`
+- **方法**: `GET`
+- **参数**:
+  - `q`: 搜索关键词（必填）
+  - `page`: 页码（必填，整数，默认值为1）
+  - `pageSize`: 每页商品数量（必填，整数，默认值为10）
+- **成功响应**:
+```json
+{
+    "TotalCount": 100,
+    "CurrentPage": 1,
+    "PageSize": 10,
+    "Items": [
+        {
+            "Id": "商品ID",
+            "Name": "商品名称",
+            "Price": 100.00,
+            "Description": "商品描述",
+            "CategoryId": "分类ID",
+            "CategoryName": "分类名称",
+            "UploaderUserId": 123,
+            "UploaderName": "用户名",
+            "CreatedAt": "创建时间"
         },
     ]
 }
@@ -433,7 +529,7 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
     "Name": "商品名称",
     "Price": 100.00, //decimal
     "Description": "商品描述",
-    "Category": "商品分类",
+    "CategoryId": "分类ID", //Guid格式
 }
 ```
 ### 删除商品
@@ -448,18 +544,6 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 - **成功响应**:
   - `200 OK`
 
-### 商品类别均价
-- **路径**: `/store/avgPrice?category={category}`
-- **方法**: `GET`
-- **参数**:
-  - `category`: 商品分类（必填）
-- **成功响应**:
-```json
-{
-    "AvgPrice": 100.00 //decimal
-}
-```
-
 ### 获取商品detail
 - **路径**: `/store/detail?id={productId}`
 - **方法**: `GET`
@@ -471,12 +555,85 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
     "Id": "qweqwe",//guid
     "Price": 100.00, //decimal
     "Description": "商品描述",
-    "Category": "商品分类",
+    "CategoryId": "分类ID", //Guid格式
+    "CategoryName": "商品分类名称",
     "Uploader":{
         "Id":123123,
         "Name":"用户名",
         "Avatar":"图片ID"
     }
+}
+```
+
+### 获取商品详情（RESTful风格）
+- **路径**: `/store/products/{id}`
+- **方法**: `GET`
+- **参数**:
+  - `id`: 商品ID（必填，Guid格式）
+- **成功响应**:
+```json
+{
+    "Id": "qweqwe",//guid
+    "Price": 100.00, //decimal
+    "Description": "商品描述",
+    "CategoryId": "分类ID", //Guid格式
+    "CategoryName": "商品分类名称",
+    "UploaderUserId": 123123,
+    "UploaderName": "用户名",
+    "CreatedAt": "创建时间"
+}
+```
+
+### 商品类别均价
+- **路径**: `/store/avgPrice?categoryId={categoryId}`
+- **方法**: `GET`
+- **参数**:
+  - `categoryId`: 商品分类ID（必填，Guid格式）
+- **成功响应**:
+```json
+{
+    "AvgPrice": 100.00 //decimal
+}
+```
+
+### 获取所有分类
+- **路径**: `/store/categories`
+- **方法**: `GET`
+- **成功响应**:
+```json
+{
+    "Success": true,
+    "Message": null,
+    "Data": [
+        {
+            "Id": "分类ID",
+            "Name": "分类名称",
+            "CoverImageId": "封面图片ID",
+            "CreatedAt": "创建时间"
+        },
+        ...
+    ],
+    "Timestamp": "时间戳"
+}
+```
+
+### 根据ID获取分类
+- **路径**: `/store/categories/{id}`
+- **方法**: `GET`
+- **参数**:
+  - `id`: 分类ID（必填，Guid格式）
+- **成功响应**:
+```json
+{
+    "Success": true,
+    "Message": null,
+    "Data": {
+        "Id": "分类ID",
+        "Name": "分类名称",
+        "CoverImageId": "封面图片ID",
+        "CreatedAt": "创建时间"
+    },
+    "Timestamp": "时间戳"
 }
 ```
 
@@ -500,6 +657,55 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 {
     "Category": "商品分类",
     "Cover": "图片ID"
+}
+```
+
+### 收藏分类
+- **路径**: `/store/categories/{categoryId}/favorite`
+- **方法**: `POST`
+- **参数**:
+  - `categoryId`: 分类ID（必填，Guid格式）
+- **成功响应**:
+  - `200 OK`
+
+### 取消收藏分类
+- **路径**: `/store/categories/{categoryId}/unfavorite`
+- **方法**: `POST`
+- **参数**:
+  - `categoryId`: 分类ID（必填，Guid格式）
+- **成功响应**:
+  - `200 OK`
+
+### 获取用户收藏分类
+- **路径**: `/store/favoriteCategories`
+- **方法**: `GET`
+- **成功响应**:
+```json
+{
+    "Success": true,
+    "Data": [
+        {
+            "Id": "分类ID", //Guid格式
+            "Name": "分类名称",
+            "CoverImageId": "封面图片ID", //Guid格式
+            "CreatedAt": "创建时间"
+        }
+    ]
+}
+```
+
+### 检查分类是否已收藏
+- **路径**: `/store/categories/{categoryId}/isFavorited`
+- **方法**: `GET`
+- **参数**:
+  - `categoryId`: 分类ID（必填，Guid格式）
+- **成功响应**:
+```json
+{
+    "Success": true,
+    "Data": {
+        "IsFavorited": true
+    }
 }
 ```
 
@@ -542,6 +748,91 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 ```
 
 ## admin
+### 处理用户
+- **路径**: `/admin/handleUser`
+- **方法**: `POST`
+- **参数**:
+```json
+{
+    "UserId": 123, //int
+    "IsBlocked": true, //bool
+    "HandleReason": "处理原因"
+}
+```
+- **成功响应**:
+  - `200 OK`
+
+### 设置用户为管理员
+- **路径**: `/admin/setAdmin`
+- **方法**: `POST`
+- **参数**:
+```json
+{
+    "UserId": 123 //int
+}
+```
+- **成功响应**:
+  - `200 OK`
+
+### 获取用户列表
+- **路径**: `/admin/users?page={page}&pageSize={pageSize}&isBlocked={isBlocked}&isAdmin={isAdmin}&search={search}`
+- **方法**: `GET`
+- **参数**:
+  - `page`: 页码（必填，整数，默认值为1）
+  - `pageSize`: 每页记录数量（必填，整数，默认值为10）
+  - `isBlocked`: 是否被封禁（可选，bool）
+  - `isAdmin`: 是否是管理员（可选，bool）
+  - `search`: 搜索关键词（可选，用于搜索用户名或邮箱）
+- **成功响应**:
+```json
+{
+    "TotalCount": 100,
+    "CurrentPage": 1,
+    "PageSize": 10,
+    "Items": [
+        {
+            "Id": 123123,
+            "Name": "用户名",
+            "Avatar": "图片ID",
+            "Email": "用户邮箱",
+            "IsBlocked": false, //bool
+            "IsAdmin": false //bool
+        },
+    ]
+}
+```
+
+### 获取用户详情
+- **路径**: `/admin/users/{userId}`
+- **方法**: `GET`
+- **参数**:
+  - `userId`: 用户ID（必填，整数）
+- **成功响应**:
+```json
+{
+    "Id": 123123,
+    "Name": "用户名",
+    "Avatar": "图片ID",
+    "Email": "用户邮箱",
+    "IsBlocked": false, //bool
+    "IsAdmin": false //bool
+}
+```
+
+### 获取系统统计信息
+- **路径**: `/admin/statistics`
+- **方法**: `GET`
+- **成功响应**:
+```json
+{
+    "TotalUsers": 1000,
+    "TotalProducts": 500,
+    "TotalTransactions": 2000,
+    "RecentTransactions": 150,
+    "BannedUsers": 10
+}
+```
+
 ### 查看被举报的帖子
 - **路径**: `/admin/reportedPosts?page={page}&pageSize={pageSize}`
 - **方法**: `GET`
@@ -551,16 +842,31 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 - **成功响应**:
 ```json
 {
-    "TotalPages": 10,
+    "TotalCount": 10,
     "CurrentPage": 1,
     "PageSize": 10,
-    "Posts": [
+    "Items": [
         {
-            ...
+            "Id": "帖子ID",
+            "Title": "帖子标题",
+            "Content": "帖子内容",
+            "CreatedAt": "2023-01-01T00:00:00Z",
+            "ReportCount": 3,
+            "ViewCount": 100,
+            "LikeCount": 10,
+            "IsBlocked": false,
+            "IsLiked": false,
+            "Tags": ["标签1", "标签2"],
+            "ImageIds": ["图片ID1", "图片ID2"],
+            "Uploader": {
+                "Id": 123123,
+                "Name": "用户名"
+            }
         },
     ]
 }
 ```
+
 ### 处理举报帖子
 - **路径**: `/admin/handleReport`
 - **方法**: `POST`
@@ -570,56 +876,6 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
     "PostId": "帖子ID",
     "IsBlocked": true, //bool
     "HandleReason": "处理原因"
-}
-```
-- **成功响应**:
-  - `200 OK`
-
-### 处理用户
-- **路径**: `/admin/handleUser`
-- **方法**: `POST`
-- **参数**:
-```json
-{
-    "UserId": "用户ID",
-    "IsBlocked": true, //bool
-    "HandleReason": "处理原因"
-}
-```
-- **成功响应**:
-  - `200 OK`
-
-### 搜索用户
-- **路径**: `/admin/searchUser?name={name}&page={page}&pageSize={pageSize}`
-- **方法**: `GET`
-- **参数**:
-  - `name`: 用户名（必填）
-  - `page`: 页码（必填，整数，默认值为1）
-  - `pageSize`: 每页记录数量（必填，整数，默认值为10）
-- **成功响应**:
-```json
-{
-    "TotalPages": 10,
-    "CurrentPage": 1,
-    "PageSize": 10,
-    "Users": [
-        {
-            "Id": 123123,
-            "Name": "用户名",
-            "Avatar": "图片ID",
-            "Email": "用户邮箱",
-            "IsBlocked": false, //bool
-        },
-    ]
-}
-```
-### 赋予管理员权限
-- **路径**: `/admin/grant`
-- **方法**: `POST`
-- **参数**:
-```json
-{
-    "UserId": "用户ID"
 }
 ```
 - **成功响应**:

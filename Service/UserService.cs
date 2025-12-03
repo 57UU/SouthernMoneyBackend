@@ -45,6 +45,28 @@ public class UserService
             return user.Id;
         }
     }
+    /// <summary>
+    /// verify password
+    /// </summary>
+    /// <param name="password"></param>
+    /// <param name="hashedPassword"></param>
+    /// <returns></returns>
+    private static bool VerifyPassword(string password, string hashedPassword)
+    {
+        return Utils.VerifyPassword(password, hashedPassword);
+    }
+    public async Task UpdatePassword(long userId, string newPassword,string currentPassword)
+    {
+
+        var user = await _userRepository.GetUserByIdAsync(userId) ?? throw new Exception("User not found");
+        // verify current password
+        if (!VerifyPassword(currentPassword, user.Password))
+        {
+            throw new Exception("Current password is incorrect");
+        }
+        user.Password = Utils.HashPassword(newPassword);
+        await _userRepository.UpdateUserAsync(user);
+    }
 
     /// <summary>
     /// login by password and return a JWT token

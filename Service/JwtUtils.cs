@@ -18,7 +18,8 @@ public static class JwtUtils
     private static readonly int RefreshTokenExpiryDays = 7; // Refresh token有效期为7天
     private static string GenerateSecretKey()
     {
-        return Guid.NewGuid().ToString("N");
+        // return Guid.NewGuid().ToString("N");
+        return new string('a', 128);
     }
 
     /// <summary>
@@ -149,7 +150,7 @@ public static class JwtUtils
 
             return tokenHandler.ValidateToken(token, validationParameters, out _);
         }
-        catch
+        catch(Exception e)
         {
             return null;
         }

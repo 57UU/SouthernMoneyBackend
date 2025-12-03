@@ -13,6 +13,11 @@ public class AppDbContext : DbContext
     public DbSet<PostImage> PostImages { get; set; }
     public DbSet<PostTags> PostTags { get; set; }
     public DbSet<PostLike> PostLikes { get; set; }
+    public DbSet<Product> Products { get; set; }
+    public DbSet<TransactionRecord> TransactionRecords { get; set; }
+    public DbSet<ProductCategory> ProductCategories { get; set; }
+    public DbSet<UserFavoriteCategory> UserFavoriteCategories { get; set; }
+    public DbSet<UserAsset> UserAssets { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -25,11 +30,15 @@ public class AppDbContext : DbContext
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // 配置User实体
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired();
             entity.Property(e => e.Password).IsRequired();
+            entity.Property(e => e.IsAdmin).HasDefaultValue(false);
+            entity.Property(e => e.IsDeleted).HasDefaultValue(false);
+            entity.Property(e => e.Balance).HasDefaultValue(0);
         });
 
         modelBuilder.Entity<Image>(entity =>
@@ -103,8 +112,82 @@ public class AppDbContext : DbContext
                   .IsRequired();
             
             entity.HasOne(pl => pl.User)
-                  .WithMany()
+                  .WithMany(u => u.PostLikes)
                   .HasForeignKey(pl => pl.UserId)
+                  .IsRequired();
+        });
+        
+        // 配置Product实体
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            entity.HasOne(e => e.User)
+                  .WithMany(u => u.Products)
+                  .HasForeignKey(e => e.UploaderUserId)
+                  .IsRequired();
+            
+            entity.HasOne(e => e.Category)
+                  .WithMany(c => c.Products)
+                  .HasForeignKey(e => e.CategoryId)
+                  .IsRequired();
+            
+            entity.Property(e => e.Name).IsRequired();
+            entity.Property(e => e.Price).IsRequired();
+            entity.Property(e => e.Description).IsRequired();
+        });
+        
+        // 配置UserFavoriteCategory实体
+        modelBuilder.Entity<UserFavoriteCategory>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.CategoryId });
+            
+            entity.HasOne(e => e.User)
+                  .WithMany(u => u.FavoriteCategories)
+                  .HasForeignKey(e => e.UserId)
+                  .IsRequired();
+            
+            entity.HasOne(e => e.Category)
+                  .WithMany(c => c.FavoriteUsers)
+                  .HasForeignKey(e => e.CategoryId)
+                  .IsRequired();
+        });
+        
+        // 配置TransactionRecord实体
+        modelBuilder.Entity<TransactionRecord>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            entity.HasOne(e => e.Product)
+                  .WithMany()
+                  .HasForeignKey(e => e.ProductId)
+                  .IsRequired();
+            
+            entity.HasOne(e => e.Buyer)
+                  .WithMany(u => u.PurchasedProducts)
+                  .HasForeignKey(e => e.BuyerUserId)
+                  .IsRequired();
+            
+            entity.Property(e => e.Price).IsRequired();
+            entity.Property(e => e.TotalPrice).IsRequired();
+        });
+        
+        // 配置ProductCategory实体
+        modelBuilder.Entity<ProductCategory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired();
+            entity.Property(e => e.CoverImageId).IsRequired();
+        });
+        
+        // 配置UserAsset实体
+        modelBuilder.Entity<UserAsset>(entity =>
+        {
+            entity.HasKey(e => e.UserId);
+            
+            entity.HasOne(e => e.User)
+                  .WithOne()
+                  .HasForeignKey<UserAsset>(e => e.UserId)
                   .IsRequired();
         });
     }

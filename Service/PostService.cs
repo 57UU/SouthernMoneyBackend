@@ -250,6 +250,39 @@ public class PostService
         await postRepository.UpdatePostAsync(post);
         return true;
     }
+    
+    public async Task<PagedPostsResult> SearchPostsAsync(string query, int page, int pageSize, long currentUserId)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            throw new ArgumentException("Search query cannot be empty");
+        }
+        
+        if (page <= 0) page = 1;
+        if (pageSize <= 0) pageSize = 10;
+        
+        var (posts, totalCount) = await postRepository.SearchPostsAsync(query, page, pageSize);
+        
+        var postIds = posts.Select(p => p.Id).ToList();
+        var likedPosts = new List<Database.PostLike>();
+        
+        foreach (var postId in postIds)
+        {
+            if (await postRepository.IsPostLikedByUserAsync(postId, currentUserId))
+            {
+                likedPosts.Add(new Database.PostLike { PostId = postId, UserId = currentUserId });
+            }
+        }
+        
+        var likedIds = likedPosts.Select(pl => pl.PostId).ToHashSet();
+        
+        return new PagedPostsResult
+        {
+            Posts = posts,
+            LikedPostIds = likedIds,
+            TotalCount = totalCount
+        };
+    }
 }
 
 public class PostDetailResult

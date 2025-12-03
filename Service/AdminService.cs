@@ -4,12 +4,15 @@ public class AdminService
 {
     private readonly Database.Repositories.UserRepository userRepository;
     private readonly Database.Repositories.ImageRepository imageRepository;
+    private readonly Database.Repositories.PostRepository postRepository;
 
     public AdminService(Database.Repositories.UserRepository userRepository,
-                        Database.Repositories.ImageRepository imageRepository)
+                        Database.Repositories.ImageRepository imageRepository,
+                        Database.Repositories.PostRepository postRepository)
     {
         this.userRepository = userRepository;
         this.imageRepository = imageRepository;
+        this.postRepository = postRepository;
     }
     
     /// <summary>
@@ -91,5 +94,30 @@ public class AdminService
         {
             throw new Exception($"User is banned: {user.BlockReason}");
         }
+    }
+    
+    /// <summary>
+    /// 获取被举报的帖子
+    /// </summary>
+    public async Task<(List<Database.Post> Posts, int TotalCount)> GetReportedPostsAsync(int page = 1, int pageSize = 10)
+    {
+        if (page < 1) page = 1;
+        if (pageSize < 1 || pageSize > 100) pageSize = 10;
+        
+        return await postRepository.GetReportedPostsAsync(page, pageSize);
+    }
+    
+    /// <summary>
+    /// 处理举报帖子
+    /// </summary>
+    public async Task HandleReportAsync(Guid postId, bool isBlocked, string handleReason)
+    {
+        var post = await postRepository.GetPostByIdAsync(postId);
+        if (post == null)
+        {
+            throw new Exception("Post not found");
+        }
+        
+        await postRepository.TogglePostBlockStatusAsync(postId, isBlocked);
     }
 }

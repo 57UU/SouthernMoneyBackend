@@ -34,7 +34,7 @@ public class LoginController : ControllerBase
         try
         {
             var (token, refreshToken) = await userService.LoginByPassword(request.Name, request.Password);
-            return ApiResponse.Ok(new { Token = token, RefreshToken = refreshToken });
+            return ApiResponse.Ok(new TokenResponseDto { Token = token, RefreshToken = refreshToken });
         }
         catch (Exception e)
         {
@@ -51,7 +51,7 @@ public class LoginController : ControllerBase
             if (tokenPair != null)
             {
                 var (newToken, newRefreshToken) = tokenPair.Value;
-                return ApiResponse.Ok(new { token = newToken, refreshToken = newRefreshToken });
+                return ApiResponse.Ok(new TokenResponseDto { Token = newToken, RefreshToken = newRefreshToken });
             }
             else
             {

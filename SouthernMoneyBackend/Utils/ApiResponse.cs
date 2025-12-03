@@ -118,16 +118,19 @@ public class PaginatedResponse<T>
     /// <summary>
     /// 创建分页响应
     /// </summary>
-    public static ApiResponse<PaginatedResponse<T>> Create(List<T> data, int page, int pageSize, int totalCount)
+    public static PaginatedResponse<T> Create(List<T> data, int page, int pageSize, int totalCount)
     {
-        PaginatedResponse<T> payload = new PaginatedResponse<T>
+        return new PaginatedResponse<T>
         {
             CurrentPage = page,
             PageSize = pageSize,
             TotalCount = totalCount,
             Items = data
         };
-        return ApiResponse<PaginatedResponse<T>>.Ok(payload);
+    }
+    public static ApiResponse<PaginatedResponse<T>> CreateApiResponse(List<T> data, int page, int pageSize, int totalCount)
+    {
+        return ApiResponse<PaginatedResponse<T>>.Ok(Create(data, page, pageSize, totalCount));
     }
 }
     

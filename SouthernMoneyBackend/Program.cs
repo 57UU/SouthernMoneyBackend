@@ -34,10 +34,10 @@ builder.Services.AddCors(options =>
 });
 
 // 尝试连接PostgreSQL，失败则回退到SQLite
-// 检查命令行参数中是否包含 --use-sqlite
-bool forceUseSqlite = args.Contains("--use-sqlite");
+// 检查命令行参数中是否包含 --use-pg
+bool forceUsePostgres = args.Contains("--use-pg");
 string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-bool usePostgres = !forceUseSqlite && Utils.IsPostgreSqlAvailable(connectionString);
+bool usePostgres = forceUsePostgres && Utils.IsPostgreSqlAvailable(connectionString);
 
 if (usePostgres)
 {
@@ -47,13 +47,13 @@ if (usePostgres)
 else
 {
     var logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<Program>();
-    if (forceUseSqlite)
+    if (forceUsePostgres)
     {
-        logger.LogInformation("检测到 --use-sqlite 参数，强制使用 SQLite 数据库");
+        logger.LogInformation("检测到 --use-pg 参数，尝试使用 PostgreSQL 数据库");
     }
     else
     {
-        logger.LogWarning("PostgreSQL连接失败，回退到SQLite数据库");
+        logger.LogInformation("未指定 --use-pg 参数，使用 SQLite 数据库");
     }
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseSqlite($"Data Source=data.db"));

@@ -81,4 +81,64 @@ public class UserRepository
     {
         return await _context.Users.ToListAsync();
     }
+    
+    /// <summary>
+    /// 分页获取用户列表
+    /// </summary>
+    public async Task<(List<User> Users, int TotalCount)> GetUsersPagedAsync(int page, int pageSize, bool? isBlocked = null, bool? isAdmin = null)
+    {
+        var query = _context.Users.AsQueryable();
+        
+        if (isBlocked.HasValue)
+        {
+            query = query.Where(u => u.IsBlocked == isBlocked.Value);
+        }
+        
+        if (isAdmin.HasValue)
+        {
+            query = query.Where(u => u.IsAdmin == isAdmin.Value);
+        }
+        
+        var totalCount = await query.CountAsync();
+        
+        var users = await query
+            .OrderByDescending(u => u.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+            
+        return (users, totalCount);
+    }
+    
+    /// <summary>
+    /// 获取被封禁的用户数量
+    /// </summary>
+    public async Task<int> GetBannedUsersCountAsync()
+    {
+        return await _context.Users.CountAsync(u => u.IsBlocked);
+    }
+
+    /// <summary>
+    /// 获取被封禁的用户数量（别名方法）
+    /// </summary>
+    public async Task<int> GetBannedUserCountAsync()
+    {
+        return await GetBannedUsersCountAsync();
+    }
+
+    /// <summary>
+    /// 获取用户总数
+    /// </summary>
+    public async Task<int> GetUserCountAsync()
+    {
+        return await _context.Users.CountAsync();
+    }
+    
+    /// <summary>
+    /// 获取管理员数量
+    /// </summary>
+    public async Task<int> GetAdminUsersCountAsync()
+    {
+        return await _context.Users.CountAsync(u => u.IsAdmin);
+    }
 }
