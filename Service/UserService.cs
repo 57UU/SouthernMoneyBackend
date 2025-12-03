@@ -22,7 +22,7 @@ public class UserService
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    public async Task RegisterUser(Database.User user, bool existIsOk = false)
+    public async Task<long> RegisterUser(Database.User user, bool existIsOk = false)
     {
         // 检查用户名是否已存在
         var existingUser = await _userRepository.GetUserByNameAsync(user.Name);
@@ -30,17 +30,20 @@ public class UserService
         {
             if (existIsOk)
             {
-                return;
+                return existingUser.Id;
             }
             else
             {
                 throw new Exception("Username already exists");
             }
         }
-
-        //hash passwd
-        user.Password = Utils.HashPassword(user.Password);
-        await _userRepository.AddUserAsync(user);
+        else
+        {
+            //hash passwd
+            user.Password = Utils.HashPassword(user.Password);
+            await _userRepository.AddUserAsync(user);
+            return user.Id;
+        }
     }
 
     /// <summary>
@@ -196,5 +199,5 @@ public class UserService
     {
         return await _userRepository.DeleteUserAsync(id);
     }
-    
+
 }

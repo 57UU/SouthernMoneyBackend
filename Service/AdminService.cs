@@ -62,6 +62,19 @@ public class AdminService
 
         await userRepository.UpdateUserAsync(user);
     }
+    public async Task SetAdmin(long userId,bool alreadyAdminOk = false){
+        var user = await userRepository.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            throw new Exception("User not found");
+        }
+        if (user.IsAdmin && !alreadyAdminOk)
+        {
+            throw new Exception("User is already admin");
+        }
+        user.IsAdmin = true;
+        await userRepository.UpdateUserAsync(user);
+    }
     
     /// <summary>
     /// 检查用户是否被封禁（业务层可复用）

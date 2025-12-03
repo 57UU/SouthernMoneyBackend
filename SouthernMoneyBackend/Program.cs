@@ -96,9 +96,12 @@ if (isDevEnv)
     //register test user 
     using (var scope = app.Services.CreateScope())
     {
-        var userService=scope.ServiceProvider.GetService<UserService>();
-        await userService.RegisterUser(new User { Name="test",Password="123"}, existIsOk: true);
+        var userService=scope.ServiceProvider.GetService<UserService>()!;
+        long userId=await userService.RegisterUser(new User { Name="test",Password="123"}, existIsOk: true);
+        var adminService=scope.ServiceProvider.GetService<AdminService>()!;
+        await adminService.SetAdmin(userId, alreadyAdminOk: true);
     }
+    
     
 
 }
