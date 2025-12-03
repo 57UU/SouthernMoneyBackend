@@ -48,4 +48,11 @@ public class UserController : ControllerBase
     {
         throw new NotImplementedException();
     }
+    
+    // POST /user/openAccount
+    [HttpPost("openAccount")]
+    public async Task<ApiResponse<object>> OpenAccount()
+    {
+        throw new NotImplementedException();
+    }
 }
