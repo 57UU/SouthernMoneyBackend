@@ -280,6 +280,28 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 - **错误响应**:
   - `404 Not Found`: 帖子不存在
   - `403 Forbidden`: 无权限删除（非帖子作者或管理员）
+### 编辑帖子
+- **路径**: `/posts/edit`
+- **方法**: `POST`
+- **参数**:
+```json
+{
+    "PostId": "帖子ID",
+    "Title": "新标题",
+    "Content": "新内容",
+    "Tags": [
+        "新标签1",
+        "新标签2"
+    ],
+    "ImageIds": [
+        "新图片ID1",
+        "新图片ID2"
+    ]
+}
+```
+- **成功响应**:
+  - `200 OK`
+
 
 ### 我的贴子
 - **路径**: `/posts/myPosts?page={page}&pageSize={pageSize}`
@@ -382,8 +404,26 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
 - **成功响应**:
   - `200 OK`
 
-## store *：待确定
+## store
 ### 我发布的商品
+- **路径**: `/store/myProducts?page={page}&pageSize={pageSize}`
+- **方法**: `GET`
+- **参数**:
+  - `page`: 页码（必填，整数，默认值为1）
+  - `pageSize`: 每页商品数量（必填，整数，默认值为10）
+- **成功响应**:
+```json
+{
+    "TotalPages": 10,
+    "CurrentPage": 1,
+    "PageSize": 10,
+    "Products": [
+        {
+            ...
+        },
+    ]
+}
+```
 
 ### 发布商品
 - post: `/store/publish`
@@ -396,6 +436,18 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
     "Category": "商品分类",
 }
 ```
+### 删除商品
+- **路径**: `/store/delete`
+- **方法**: `POST`
+- **参数**:
+```json
+{
+    "ProductId": "商品ID"
+}
+```
+- **成功响应**:
+  - `200 OK`
+
 ### 商品类别均价
 - **路径**: `/store/avgPrice?category={category}`
 - **方法**: `GET`
