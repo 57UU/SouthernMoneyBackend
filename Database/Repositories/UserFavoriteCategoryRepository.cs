@@ -32,7 +32,7 @@ public class UserFavoriteCategoryRepository
         {
             UserId = userId,
             CategoryId = categoryId,
-            CreatedAt = DateTime.UtcNow
+            CreateTime = DateTime.UtcNow
         };
         
         _context.UserFavoriteCategories.Add(favoriteCategory);
@@ -66,7 +66,7 @@ public class UserFavoriteCategoryRepository
         return await _context.UserFavoriteCategories
             .Where(f => f.UserId == userId)
             .Include(f => f.Category)
-            .OrderByDescending(f => f.CreatedAt)
+            .OrderByDescending(f => f.CreateTime)
             .Select(f => f.Category)
             .ToListAsync();
     }

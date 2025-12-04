@@ -76,7 +76,7 @@ public class PostRepository
             .Include(p => p.PostTags)
             .Include(p => p.PostLikes)
             .Where(p => !p.IsBlocked)
-            .OrderByDescending(p => p.CreatedAt)
+            .OrderByDescending(p => p.CreateTime)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -94,7 +94,7 @@ public class PostRepository
             .Include(p => p.PostTags)
             .Include(p => p.PostLikes)
             .Where(p => p.UploaderUserId == userId && !p.IsBlocked)
-            .OrderByDescending(p => p.CreatedAt)
+            .OrderByDescending(p => p.CreateTime)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -318,7 +318,7 @@ public class PostRepository
                        (p.Title.ToLower().Contains(normalizedQuery) || 
                         p.Content.ToLower().Contains(normalizedQuery) ||
                         p.PostTags.Any(pt => pt.Tag.ToLower().Contains(normalizedQuery))))
-            .OrderByDescending(p => p.CreatedAt);
+            .OrderByDescending(p => p.CreateTime);
         
         var totalCount = await postsQuery.CountAsync();
         
@@ -343,7 +343,7 @@ public class PostRepository
             .Include(p => p.PostLikes)
             .Where(p => p.ReportCount > 0)
             .OrderByDescending(p => p.ReportCount)
-            .ThenByDescending(p => p.CreatedAt);
+            .ThenByDescending(p => p.CreateTime);
         
         var totalCount = await postsQuery.CountAsync();
         

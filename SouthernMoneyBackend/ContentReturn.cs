@@ -16,7 +16,7 @@ public class PostDto
     public Guid Id { get; set; }
     public string Title { get; set; }
     public string Content { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreateTime { get; set; }
     public int ReportCount { get; set; }
     public int ViewCount { get; set; }
     public int LikeCount { get; set; }
@@ -36,7 +36,7 @@ public class PostDto
             Id = post.Id,
             Title = post.Title,
             Content = post.Content,
-            CreatedAt = post.CreatedAt,
+            CreateTime = post.CreateTime,
             ReportCount = post.ReportCount,
             ViewCount = post.ViewCount,
             LikeCount = post.LikeCount,
@@ -131,7 +131,7 @@ public class UserProfileDto
     public string Email { get; set; }
     public Guid Avatar { get; set; }
     public bool IsBlocked { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreateTime { get; set; }
     public UserAssetDto Asset { get; set; }
     
     /// <summary>
@@ -146,7 +146,7 @@ public class UserProfileDto
             Email = user.Email ?? string.Empty,
             Avatar = user.Avatar ?? Guid.Empty,
             IsBlocked = user.IsBlocked,
-            CreatedAt = user.CreatedAt,
+            CreateTime = user.CreateTime,
             Asset = UserAssetDto.FromUserAsset(asset)
         };
     }
@@ -163,7 +163,7 @@ public class UserProfileDto
             Email = user.Email ?? string.Empty,
             Avatar = user.Avatar ?? Guid.Empty,
             IsBlocked = user.IsBlocked,
-            CreatedAt = user.CreatedAt,
+            CreateTime = user.CreateTime,
             Asset = assetDto
         };
     }
@@ -229,7 +229,7 @@ public class ProductDto
     public string CategoryName { get; set; }
     public long UploaderUserId { get; set; }
     public string UploaderName { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreateTime { get; set; }
     
     /// <summary>
     /// 从Product实体创建ProductDto的工厂构造函数
@@ -246,7 +246,7 @@ public class ProductDto
             CategoryName = product.Category.Name,
             UploaderUserId = product.UploaderUserId,
             UploaderName = product.User.Name,
-            CreatedAt = product.CreatedAt
+            CreateTime = product.CreateTime
         };
     }
     
@@ -264,7 +264,7 @@ public class ProductCategoryDto
     public Guid Id { get; set; }
     public string Name { get; set; }
     public Guid CoverImageId { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreateTime { get; set; }
 }
 
 /// <summary>
@@ -291,7 +291,7 @@ public class UserDto
     public bool IsAdmin { get; set; }
     public string? BlockReason { get; set; }
     public DateTime? BlockedAt { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreateTime { get; set; }
     
     /// <summary>
     /// 从User实体创建UserDto的工厂构造函数
@@ -308,7 +308,7 @@ public class UserDto
             IsAdmin = user.IsAdmin,
             BlockReason = user.BlockReason,
             BlockedAt = user.BlockedAt,
-            CreatedAt = user.CreatedAt
+            CreateTime = user.CreateTime
         };
     }
     
@@ -331,7 +331,7 @@ public class UserDetailDto
     public bool IsAdmin { get; set; }
     public string? BlockReason { get; set; }
     public DateTime? BlockedAt { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreateTime { get; set; }
     
     /// <summary>
     /// 从User实体创建UserDetailDto的工厂构造函数
@@ -348,7 +348,7 @@ public class UserDetailDto
             IsAdmin = user.IsAdmin,
             BlockReason = user.BlockReason,
             BlockedAt = user.BlockedAt,
-            CreatedAt = user.CreatedAt
+            CreateTime = user.CreateTime
         };
     }
 }

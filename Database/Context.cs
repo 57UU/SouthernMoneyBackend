@@ -64,7 +64,7 @@ public class AppDbContext : DbContext
                   .HasForeignKey(e => e.UploaderUserId)
                   .IsRequired();
             entity.Property(e => e.Content).IsRequired();
-            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.CreateTime).IsRequired();
         });
         
         // 配置PostImage实体作为多对多关联表

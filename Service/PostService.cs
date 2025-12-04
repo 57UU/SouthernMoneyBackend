@@ -30,7 +30,7 @@ public class PostService
         {
             Id = Guid.NewGuid(),
             UploaderUserId = userId,
-            CreatedAt = DateTime.UtcNow,
+            CreateTime = DateTime.UtcNow,
             Title = title,
             Content = content,
             IsBlocked = false
@@ -246,7 +246,7 @@ public class PostService
             post.Content = content;
         }
         
-        post.CreatedAt = DateTime.UtcNow;
+        post.CreateTime = DateTime.UtcNow;
         await postRepository.UpdatePostAsync(post);
         return true;
     }

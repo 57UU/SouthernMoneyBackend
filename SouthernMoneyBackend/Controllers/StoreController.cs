@@ -182,7 +182,7 @@ public class StoreController : ControllerBase
                 Id = category.Id,
                 Name = category.Name,
                 CoverImageId = category.CoverImageId,
-                CreatedAt = category.CreatedAt
+                CreateTime = category.CreateTime
             }).ToList();
             
             return ApiResponse<List<ProductCategoryDto>>.Ok(categoryDtos);
@@ -210,7 +210,7 @@ public class StoreController : ControllerBase
                 Id = category.Id,
                 Name = category.Name,
                 CoverImageId = category.CoverImageId,
-                CreatedAt = category.CreatedAt
+                CreateTime = category.CreateTime
             };
             
             return ApiResponse<ProductCategoryDto>.Ok(categoryDto);
@@ -514,7 +514,7 @@ public class StoreController : ControllerBase
                 Id = category.Id,
                 Name = category.Name,
                 CoverImageId = category.CoverImageId,
-                CreatedAt = category.CreatedAt
+                CreateTime = category.CreateTime
             }).ToList();
             
             return ApiResponse<List<ProductCategoryDto>>.Ok(categoryDtos);

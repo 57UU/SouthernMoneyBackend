@@ -33,7 +33,7 @@ public class ProductCategoryService
             Id = Guid.NewGuid(),
             Name = name,
             CoverImageId = coverImageId,
-            CreatedAt = DateTime.UtcNow
+            CreateTime = DateTime.UtcNow
         };
         
         return await _categoryRepository.AddCategoryAsync(category);
