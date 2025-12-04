@@ -36,15 +36,20 @@ public class ImageBedController : ControllerBase
         var imageId = await imageBedService.UploadImageAsync(memoryStream.ToArray(),userId,imageType,description);
         return ApiResponse.Ok(new { ImageId = imageId });
     }
+    /// <summary>
+    ///     获取图片,不遵循认证中间件、返回格式。直接返回图片
+    /// </summary>
+    /// <param name="imageId"></param>
+    /// <returns></returns>
     [HttpGet("get")]
     [AllowAnonymous]
-    public async Task<ApiResponse<object>> GetImageAsync([FromQuery(Name = "id")] Guid imageId)
+    public async Task<IActionResult> GetImageAsync([FromQuery(Name = "id")] Guid imageId)
     {
         var image = await imageBedService.GetImageAsync(imageId);
         if(image==null)
         {
-            return ApiResponse.Fail("Image not found", "IMAGE_NOT_FOUND");
+            return NotFound();
         }
-        return ApiResponse.Ok(image);
+        return File(image.Data, "image/jpeg");
     }
 }
