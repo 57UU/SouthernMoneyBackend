@@ -54,7 +54,7 @@ public class UserController : ControllerBase
                 }
                 else
                 {
-                    return ApiResponse<UserProfileDto>.Fail("User asset not found");
+                    return ApiResponse<UserProfileDto>.Fail("尚未开户 请先开户");
                 }
             }
             catch
