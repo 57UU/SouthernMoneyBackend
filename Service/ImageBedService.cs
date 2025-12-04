@@ -20,7 +20,7 @@ public class ImageBedService
             Data = imageData,
             ImageType = imageType,
             Description = description,
-            CreatedAt = DateTime.UtcNow
+            CreateTime = DateTime.UtcNow
         };
         var imageId = await imageRepository.AddImageAsync(image);
         
@@ -111,7 +111,7 @@ public class ImageBedService
         }
         
         image.Description = description;
-        image.CreatedAt = DateTime.UtcNow;
+        image.CreateTime = DateTime.UtcNow;
         
         await imageRepository.UpdateImageAsync(image);
         return true;

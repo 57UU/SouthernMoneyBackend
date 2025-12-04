@@ -68,7 +68,7 @@ public class ImageRepository
         return await _context.Images
             .Include(i => i.User)
             .Where(i => i.UploaderUserId == userId)
-            .OrderByDescending(i => i.CreatedAt)
+            .OrderByDescending(i => i.CreateTime)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -81,7 +81,7 @@ public class ImageRepository
     {
         return await _context.Images
             .Include(i => i.User)
-            .OrderByDescending(i => i.CreatedAt)
+            .OrderByDescending(i => i.CreateTime)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -95,7 +95,7 @@ public class ImageRepository
         return await _context.Images
             .Include(i => i.User)
             .Where(i => i.ImageType == imageType)
-            .OrderByDescending(i => i.CreatedAt)
+            .OrderByDescending(i => i.CreateTime)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -109,7 +109,7 @@ public class ImageRepository
         return await _context.Images
             .Include(i => i.User)
             .Where(i => i.Description != null && i.Description.Contains(keyword))
-            .OrderByDescending(i => i.CreatedAt)
+            .OrderByDescending(i => i.CreateTime)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

@@ -44,7 +44,7 @@ public class ProductRepository
             .Include(p => p.User)
             .Include(p => p.Category)
             .Where(p => p.UploaderUserId == userId && !p.IsDeleted)
-            .OrderByDescending(p => p.CreatedAt)
+            .OrderByDescending(p => p.CreateTime)
             .ToListAsync();
     }
     
@@ -57,7 +57,7 @@ public class ProductRepository
             .Include(p => p.User)
             .Include(p => p.Category)
             .Where(p => p.UploaderUserId == userId && !p.IsDeleted)
-            .OrderByDescending(p => p.CreatedAt);
+            .OrderByDescending(p => p.CreateTime);
             
         var totalCount = await query.CountAsync();
         var products = await query
@@ -77,7 +77,7 @@ public class ProductRepository
             .Include(p => p.User)
             .Include(p => p.Category)
             .Where(p => !p.IsDeleted)
-            .OrderByDescending(p => p.CreatedAt)
+            .OrderByDescending(p => p.CreateTime)
             .ToListAsync();
     }
     
@@ -90,7 +90,7 @@ public class ProductRepository
             .Include(p => p.User)
             .Include(p => p.Category)
             .Where(p => !p.IsDeleted)
-            .OrderByDescending(p => p.CreatedAt);
+            .OrderByDescending(p => p.CreateTime);
             
         var totalCount = await query.CountAsync();
         var products = await query
@@ -110,7 +110,7 @@ public class ProductRepository
             .Include(p => p.User)
             .Include(p => p.Category)
             .Where(p => p.CategoryId == categoryId && !p.IsDeleted)
-            .OrderByDescending(p => p.CreatedAt)
+            .OrderByDescending(p => p.CreateTime)
             .ToListAsync();
     }
     
@@ -123,7 +123,7 @@ public class ProductRepository
             .Include(p => p.User)
             .Include(p => p.Category)
             .Where(p => p.CategoryId == categoryId && !p.IsDeleted)
-            .OrderByDescending(p => p.CreatedAt);
+            .OrderByDescending(p => p.CreateTime);
             
         var totalCount = await query.CountAsync();
         var products = await query
@@ -144,7 +144,7 @@ public class ProductRepository
             .Include(p => p.Category)
             .Where(p => !p.IsDeleted && 
                        (p.Name.Contains(keyword) || p.Description.Contains(keyword)))
-            .OrderByDescending(p => p.CreatedAt)
+            .OrderByDescending(p => p.CreateTime)
             .ToListAsync();
     }
     
@@ -158,7 +158,7 @@ public class ProductRepository
             .Include(p => p.Category)
             .Where(p => !p.IsDeleted && 
                        (p.Name.Contains(keyword) || p.Description.Contains(keyword)))
-            .OrderByDescending(p => p.CreatedAt);
+            .OrderByDescending(p => p.CreateTime);
             
         var totalCount = await query.CountAsync();
         var products = await query
@@ -180,7 +180,7 @@ public class ProductRepository
             .Where(p => !p.IsDeleted && 
                        p.CategoryId == categoryId &&
                        (p.Name.Contains(keyword) || p.Description.Contains(keyword)))
-            .OrderByDescending(p => p.CreatedAt);
+            .OrderByDescending(p => p.CreateTime);
             
         var totalCount = await query.CountAsync();
         var products = await query

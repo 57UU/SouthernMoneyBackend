@@ -27,7 +27,7 @@ public class User
             IsBlocked = false,
             BlockReason = null,
             BlockedAt = null,
-            CreatedAt = DateTime.UtcNow,
+            CreateTime = DateTime.UtcNow,
             IsDeleted = false
         };
     }
@@ -49,7 +49,7 @@ public class User
     public DateTime? BlockedAt { get; set; }
 
     //创建时间
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreateTime { get; set; } = DateTime.UtcNow;
 
     //是否删除
     public bool IsDeleted { get; set; } = false;
@@ -73,7 +73,7 @@ public class Image{
     // 用户导航属性
     [JsonIgnore]
     public User User { get; set; }
-    public DateTime CreatedAt { get; set; }= DateTime.Now;
+    public DateTime CreateTime { get; set; }= DateTime.Now;
     public string? Description { get; set; }
     public string ImageType { get; set; }
     public byte[] Data { get; set; }
@@ -86,7 +86,7 @@ public class Post{
     // 用户导航属性
     [JsonIgnore]
     public User User { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreateTime { get; set; }
     public string Title { get; set; }
     public string Content { get; set; }
     public int ReportCount { get; set; } = 0;
@@ -121,7 +121,7 @@ public class PostLike
     public Post Post { get; set; }
     public long UserId { get; set; }
     public User User { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreateTime { get; set; } = DateTime.UtcNow;
 }
 
 public class Product
@@ -134,7 +134,7 @@ public class Product
     public ProductCategory Category { get; set; }
     public long UploaderUserId { get; set; }
     public User User { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreateTime { get; set; } = DateTime.UtcNow;
     public bool IsDeleted { get; set; } = false;
 }
 
@@ -146,7 +146,7 @@ public class UserFavoriteCategory
     public Guid CategoryId { get; set; }
     public ProductCategory Category { get; set; }
     
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreateTime { get; set; } = DateTime.UtcNow;
 }
 
 public class TransactionRecord
@@ -167,7 +167,7 @@ public class ProductCategory
     public Guid Id { get; set; }
     public string Name { get; set; }
     public Guid CoverImageId { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreateTime { get; set; } = DateTime.UtcNow;
     
     public ICollection<Product> Products { get; set; } = new List<Product>();
     public ICollection<UserFavoriteCategory> FavoriteUsers { get; set; } = new List<UserFavoriteCategory>();

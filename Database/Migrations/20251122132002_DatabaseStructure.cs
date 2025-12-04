@@ -33,7 +33,7 @@ namespace Database.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UploaderUserId = table.Column<long>(type: "bigint", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
                     ImageType = table.Column<string>(type: "text", nullable: false),
                     Data = table.Column<byte[]>(type: "bytea", nullable: false)
@@ -55,7 +55,7 @@ namespace Database.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UploaderUserId = table.Column<long>(type: "bigint", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false)
                 },

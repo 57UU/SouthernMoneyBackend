@@ -52,7 +52,7 @@ public class ProductService
             Description = description,
             CategoryId = categoryId,
             UploaderUserId = userId,
-            CreatedAt = DateTime.UtcNow,
+            CreateTime = DateTime.UtcNow,
             IsDeleted = false
         };
         
