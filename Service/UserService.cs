@@ -55,7 +55,7 @@ public class UserService
     {
         return Utils.VerifyPassword(password, hashedPassword);
     }
-    public async Task UpdatePassword(long userId, string newPassword,string currentPassword)
+    public async Task UpdatePassword(long userId, string newPassword, string currentPassword)
     {
 
         var user = await _userRepository.GetUserByIdAsync(userId) ?? throw new Exception("User not found");
@@ -163,7 +163,7 @@ public class UserService
     }
 
     /// <summary>
-    /// update user info
+    /// update user info，but not password
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="user"></param>
@@ -186,16 +186,40 @@ public class UserService
             }
         }
 
-        // 更新用户信息
-        existingUser.Name = user.Name;
+        // 使用细粒度更新方式，只更新变化的字段
+        var propertiesToUpdate = new Dictionary<string, object>();
 
-        // 如果提供了新密码，则更新密码
-        if (!string.IsNullOrEmpty(user.Password))
+        // 检查并添加需要更新的字段
+        if (existingUser.Name != user.Name)
         {
-            existingUser.Password = Utils.HashPassword(user.Password);
+            propertiesToUpdate.Add("Name", user.Name);
         }
 
-        await _userRepository.UpdateUserAsync(existingUser);
+        if (existingUser.Email != user.Email)
+        {
+            propertiesToUpdate.Add("Email", user.Email);
+        }
+
+        if (existingUser.Avatar != user.Avatar)
+        {
+            propertiesToUpdate.Add("Avatar", user.Avatar);
+        }
+
+        // 如果有需要更新的字段，执行更新
+        if (propertiesToUpdate.Count > 0)
+        {
+            await _userRepository.UpdateUserPropertiesAsync(userId, propertiesToUpdate);
+        }
+    }
+    public async Task UpdateUserAvater(long userId, Guid? avatarId)
+    {
+        var existingUser = await _userRepository.GetUserByIdAsync(userId);
+        if (existingUser == null)
+        {
+            throw new Exception("User not found");
+        }
+
+        await _userRepository.UpdateUserAvatarAsync(userId, avatarId);
     }
 
     /// <summary>
@@ -222,4 +246,135 @@ public class UserService
         return await _userRepository.DeleteUserAsync(id);
     }
 
+    /// <summary>
+    /// 更新用户邮箱
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="email">新邮箱</param>
+    /// <returns></returns>
+    public async Task UpdateUserEmail(long userId, string? email)
+    {
+        var existingUser = await _userRepository.GetUserByIdAsync(userId);
+        if (existingUser == null)
+        {
+            throw new Exception("User not found");
+        }
+
+        await _userRepository.UpdateUserEmailAsync(userId, email);
+    }
+
+    /// <summary>
+    /// 更新用户头像
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="avatarId">新头像ID</param>
+    /// <returns></returns>
+    public async Task UpdateUserAvatar(long userId, Guid? avatarId)
+    {
+        var existingUser = await _userRepository.GetUserByIdAsync(userId);
+        if (existingUser == null)
+        {
+            throw new Exception("User not found");
+        }
+
+        await _userRepository.UpdateUserAvatarAsync(userId, avatarId);
+    }
+
+    /// <summary>
+    /// 更新用户状态（封禁/解封）
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="isBlocked">是否封禁</param>
+    /// <param name="blockReason">封禁原因（封禁时必填）</param>
+    /// <returns></returns>
+    public async Task UpdateUserBlockStatus(long userId, bool isBlocked, string? blockReason = null)
+    {
+        var existingUser = await _userRepository.GetUserByIdAsync(userId);
+        if (existingUser == null)
+        {
+            throw new Exception("User not found");
+        }
+
+        var propertiesToUpdate = new Dictionary<string, object>
+        {
+            { "IsBlocked", isBlocked }
+        };
+
+        if (isBlocked)
+        {
+            propertiesToUpdate.Add("BlockedAt", DateTime.UtcNow);
+            if (!string.IsNullOrEmpty(blockReason))
+            {
+                propertiesToUpdate.Add("BlockReason", blockReason);
+            }
+        }
+        else
+        {
+            propertiesToUpdate.Add("BlockedAt", null);
+            propertiesToUpdate.Add("BlockReason", null);
+        }
+
+        await _userRepository.UpdateUserPropertiesAsync(userId, propertiesToUpdate);
+    }
+
+    /// <summary>
+    /// 更新用户管理员状态
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="isAdmin">是否为管理员</param>
+    /// <returns></returns>
+    public async Task UpdateUserAdminStatus(long userId, bool isAdmin)
+    {
+        var existingUser = await _userRepository.GetUserByIdAsync(userId);
+        if (existingUser == null)
+        {
+            throw new Exception("User not found");
+        }
+
+        await _userRepository.UpdateUserPropertyAsync(userId, "IsAdmin", isAdmin);
+    }
+
+    /// <summary>
+    /// 更新用户账户状态
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="hasAccount">是否已开户</param>
+    /// <returns></returns>
+    public async Task UpdateUserAccountStatus(long userId, bool hasAccount)
+    {
+        var existingUser = await _userRepository.GetUserByIdAsync(userId);
+        if (existingUser == null)
+        {
+            throw new Exception("User not found");
+        }
+
+        var propertiesToUpdate = new Dictionary<string, object>
+        {
+            { "HasAccount", hasAccount }
+        };
+
+        if (hasAccount && !existingUser.AccountOpenedAt.HasValue)
+        {
+            propertiesToUpdate.Add("AccountOpenedAt", DateTime.UtcNow);
+        }
+
+        await _userRepository.UpdateUserPropertiesAsync(userId, propertiesToUpdate);
+    }
+
+    /// <summary>
+    /// 更新用户余额
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="balance">新余额</param>
+    /// <returns></returns>
+    public async Task UpdateUserBalance(long userId, decimal balance)
+    {
+        var existingUser = await _userRepository.GetUserByIdAsync(userId);
+        if (existingUser == null)
+        {
+            throw new Exception("User not found");
+        }
+
+        await _userRepository.UpdateUserPropertyAsync(userId, "Balance", balance);
+    }
 }

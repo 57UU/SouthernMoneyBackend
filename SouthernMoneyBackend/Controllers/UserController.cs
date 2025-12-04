@@ -149,7 +149,7 @@ public class UserController : ControllerBase
             if (user != null)
             {
                 user.Avatar = avatarId;
-                await _userService.UpdateUser(userId, user);
+                await _userService.UpdateUserAvater(userId, avatarId);
             }
             
             return ApiResponse<object>.Ok(new UploadAvatarResultDto { AvatarId = avatarId });

@@ -51,6 +51,84 @@ public class UserRepository
     }
     
     /// <summary>
+    /// 细粒度更新：只更新用户名
+    /// </summary>
+    public async Task<bool> UpdateUserNameAsync(long userId, string newName)
+    {
+        var user = await GetUserByIdAsync(userId);
+        if (user == null)
+            return false;
+            
+        user.Name = newName;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+    
+    /// <summary>
+    /// 细粒度更新：只更新用户邮箱
+    /// </summary>
+    public async Task<bool> UpdateUserEmailAsync(long userId, string? newEmail)
+    {
+        var user = await GetUserByIdAsync(userId);
+        if (user == null)
+            return false;
+            
+        user.Email = newEmail;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+    
+    /// <summary>
+    /// 细粒度更新：只更新用户头像
+    /// </summary>
+    public async Task<bool> UpdateUserAvatarAsync(long userId, Guid? newAvatarId)
+    {
+        var user = await GetUserByIdAsync(userId);
+        if (user == null)
+            return false;
+            
+        user.Avatar = newAvatarId;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+    
+    /// <summary>
+    /// 细粒度更新：使用Entity Framework的Property方法更新指定属性
+    /// </summary>
+    public async Task<bool> UpdateUserPropertyAsync<T>(long userId, string propertyName, T value)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+            return false;
+            
+        _context.Entry(user).Property(propertyName).CurrentValue = value;
+        _context.Entry(user).Property(propertyName).IsModified = true;
+        
+        // 只标记指定属性为已修改，其他属性保持不变
+        await _context.SaveChangesAsync();
+        return true;
+    }
+    
+    /// <summary>
+    /// 细粒度更新：批量更新多个属性
+    /// </summary>
+    public async Task<bool> UpdateUserPropertiesAsync(long userId, Dictionary<string, object> properties)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+            return false;
+            
+        foreach (var property in properties)
+        {
+            _context.Entry(user).Property(property.Key).CurrentValue = property.Value;
+            _context.Entry(user).Property(property.Key).IsModified = true;
+        }
+        
+        await _context.SaveChangesAsync();
+        return true;
+    }
+    
+    /// <summary>
     /// 删除用户
     /// </summary>
     public async Task<bool> DeleteUserAsync(long id)
