@@ -29,10 +29,18 @@
                         
                         if (loginData.Success && loginData.Data && loginData.Data.Token) {
                             const token = loginData.Data.Token;
-                            console.log('登录成功，获取到token:', token);
+                            console.log('登录成功，获取到token:', token.substring(0, 20) + '...');
                             
                             // 将token保存到localStorage，以便后续使用
                             localStorage.setItem('swagger_auth_token', token);
+                            
+                            // 计算token过期时间（假设token有效期为1小时）
+                            const now = new Date();
+                            const expiryTime = new Date(now.getTime() + 60 * 60 * 1000); // 1小时后过期
+                            localStorage.setItem('swagger_auth_token_expiry', expiryTime.toISOString());
+                            
+                            console.log('Token过期时间:', expiryTime.toISOString());
+                            console.log('当前时间:', now.toISOString());
                             
                             // 更新页面上的token显示
                             if (window.updateTokenDisplay) {
@@ -162,6 +170,48 @@
                     }
                     
                     tokenDisplay.appendChild(tokenValue);
+                        
+                    // 添加过期时间显示
+                    const expiryDisplay = document.createElement('div');
+                    expiryDisplay.style.marginTop = '5px';
+                    
+                    const expiryLabel = document.createElement('div');
+                    expiryLabel.textContent = '过期时间:';
+                    expiryLabel.style.fontSize = '12px';
+                    expiryLabel.style.color = '#6c757d';
+                    expiryDisplay.appendChild(expiryLabel);
+                    
+                    const expiryValue = document.createElement('div');
+                    expiryValue.id = 'swagger-expiry-display';
+                    expiryValue.style.fontSize = '11px';
+                    expiryValue.style.color = '#212529';
+                    expiryValue.style.backgroundColor = '#f8f9fa';
+                    expiryValue.style.padding = '5px';
+                    expiryValue.style.borderRadius = '3px';
+                    expiryValue.style.marginTop = '3px';
+                    
+                    // 显示过期时间或占位符
+                    const tokenExpiry = localStorage.getItem('swagger_auth_token_expiry');
+                    if (tokenExpiry) {
+                        const expiryDate = new Date(tokenExpiry);
+                        const now = new Date();
+                        const timeLeft = Math.floor((expiryDate - now) / 1000 / 60); // 剩余分钟数
+                        
+                        if (timeLeft > 0) {
+                            expiryValue.textContent = `${expiryDate.toLocaleString()} (剩余 ${timeLeft} 分钟)`;
+                            expiryValue.style.color = '#28a745'; // 绿色表示有效
+                        } else {
+                            expiryValue.textContent = `${expiryDate.toLocaleString()} (已过期)`;
+                            expiryValue.style.color = '#dc3545'; // 红色表示已过期
+                        }
+                    } else {
+                        expiryValue.textContent = '未知';
+                        expiryValue.style.color = '#6c757d'; // 灰色表示未知
+                    }
+                    
+                    expiryDisplay.appendChild(expiryValue);
+                    tokenDisplay.appendChild(expiryDisplay);
+                    
                     authContainer.appendChild(tokenDisplay);
                     
                     // 创建刷新按钮
@@ -180,15 +230,27 @@
                         authButton.textContent = '刷新中...';
                         authButton.disabled = true;
                         await loginAndSetToken();
-                        // 更新显示的token
+                        
+                        // 更新显示的token和过期时间
                         const updatedToken = localStorage.getItem('swagger_auth_token');
+                        const tokenExpiry = localStorage.getItem('swagger_auth_token_expiry');
+                        
                         if (updatedToken) {
-                            // 只显示token的前10个字符，后面用省略号
-                            const shortToken = updatedToken.length > 10 ? updatedToken.substring(0, 10) + '...' : updatedToken;
+                            // 只显示token的前20个字符，后面用省略号
+                            const shortToken = updatedToken.length > 20 ? updatedToken.substring(0, 10) + '...' : updatedToken;
                             document.getElementById('swagger-token-display').textContent = shortToken;
+                            
+                            // 显示过期时间信息
+                            if (tokenExpiry) {
+                                const expiryDate = new Date(tokenExpiry);
+                                const now = new Date();
+                                const timeLeft = Math.floor((expiryDate - now) / 1000 / 60); // 剩余分钟数
+                                console.log(`Token将在 ${timeLeft} 分钟后过期`);
+                            }
                         } else {
                             document.getElementById('swagger-token-display').textContent = '未获取Token';
                         }
+                        
                         authButton.textContent = '刷新Token';
                         authButton.disabled = false;
                     });
@@ -232,6 +294,8 @@
                     // 更新token显示函数
                     window.updateTokenDisplay = function(token) {
                         const displayElement = document.getElementById('swagger-token-display');
+                        const expiryElement = document.getElementById('swagger-expiry-display');
+                        
                         if (displayElement) {
                             if (token) {
                                 // 只显示token的前10个字符，后面用省略号
@@ -239,6 +303,27 @@
                                 displayElement.textContent = shortToken;
                             } else {
                                 displayElement.textContent = '未获取Token';
+                            }
+                        }
+                        
+                        // 更新过期时间显示
+                        if (expiryElement) {
+                            const tokenExpiry = localStorage.getItem('swagger_auth_token_expiry');
+                            if (tokenExpiry) {
+                                const expiryDate = new Date(tokenExpiry);
+                                const now = new Date();
+                                const timeLeft = Math.floor((expiryDate - now) / 1000 / 60); // 剩余分钟数
+                                
+                                if (timeLeft > 0) {
+                                    expiryElement.textContent = `${expiryDate.toLocaleString()} (剩余 ${timeLeft} 分钟)`;
+                                    expiryElement.style.color = '#28a745'; // 绿色表示有效
+                                } else {
+                                    expiryElement.textContent = `${expiryDate.toLocaleString()} (已过期)`;
+                                    expiryElement.style.color = '#dc3545'; // 红色表示已过期
+                                }
+                            } else {
+                                expiryElement.textContent = '未知';
+                                expiryElement.style.color = '#6c757d'; // 灰色表示未知
                             }
                         }
                     };
@@ -250,6 +335,36 @@
                 } else {
                     document.addEventListener('DOMContentLoaded', addAuthControls);
                 }
+                
+                // 添加定时器，每分钟更新一次过期时间显示
+                setInterval(function() {
+                    const tokenExpiry = localStorage.getItem('swagger_auth_token_expiry');
+                    const expiryElement = document.getElementById('swagger-expiry-display');
+                    
+                    if (tokenExpiry && expiryElement) {
+                        const expiryDate = new Date(tokenExpiry);
+                        const now = new Date();
+                        const timeLeft = Math.floor((expiryDate - now) / 1000 / 60); // 剩余分钟数
+                        
+                        if (timeLeft > 0) {
+                            expiryElement.textContent = `${expiryDate.toLocaleString()} (剩余 ${timeLeft} 分钟)`;
+                            expiryElement.style.color = '#28a745'; // 绿色表示有效
+                            
+                            // 如果token将在5分钟内过期，显示警告
+                            if (timeLeft <= 5) {
+                                expiryElement.style.color = '#ffc107'; // 黄色表示即将过期
+                                console.log(`Token将在 ${timeLeft} 分钟后过期，建议刷新`);
+                            }
+                        } else {
+                            expiryElement.textContent = `${expiryDate.toLocaleString()} (已过期)`;
+                            expiryElement.style.color = '#dc3545'; // 红色表示已过期
+                            
+                            // 如果token已过期，自动刷新
+                            console.log('Token已过期，自动刷新');
+                            loginAndSetToken();
+                        }
+                    }
+                }, 60000); // 每分钟检查一次
                 
             } catch (error) {
                 console.error('初始化Swagger注入脚本时发生错误:', error);

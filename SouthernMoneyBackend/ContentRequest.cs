@@ -82,7 +82,7 @@ public class ChangePasswordRequest
 // 上传头像请求
 public class UploadAvatarRequest
 {
-    public byte[] File { get; set; } // 图片文件（必填，最大2MB）
+    public IFormFile File { get; set; } // 图片文件（必填，最大2MB）
 }
 
 // 充值请求

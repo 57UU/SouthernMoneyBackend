@@ -1,9 +1,10 @@
 //following is written by hr
-using Microsoft.AspNetCore.Mvc;
-using SouthernMoneyBackend.Utils;
-using SouthernMoneyBackend.Middleware;
-using Service;
 using Database;
+using Microsoft.AspNetCore.Mvc;
+using Service;
+using SouthernMoneyBackend.Middleware;
+using SouthernMoneyBackend.Utils;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SouthernMoneyBackend.Controllers;
 
@@ -125,7 +126,7 @@ public class UserController : ControllerBase
 
     // POST /user/uploadAvatar
     [HttpPost("uploadAvatar")]
-    public async Task<ApiResponse<object>> UploadAvatar([FromBody] UploadAvatarRequest request)
+    public async Task<ApiResponse<object>> UploadAvatar([FromForm] UploadAvatarRequest request)
     {
         try
         {
@@ -136,9 +137,12 @@ public class UserController : ControllerBase
             {
                 return ApiResponse<object>.Fail("Avatar image size must be less than 2MB");
             }
-            
+            byte[] file = new byte[request.File.Length];
+            var stream = request.File.OpenReadStream();
+            await stream.ReadAsync(file);
+
             // 上传头像
-            var avatarId = await _imageBedService.UploadImageAsync(request.File, userId, "avatar");
+            var avatarId = await _imageBedService.UploadImageAsync(file, userId, "avatar");
             
             // 更新用户头像ID
             var user = await _userService.GetUserByIdAsync(userId);

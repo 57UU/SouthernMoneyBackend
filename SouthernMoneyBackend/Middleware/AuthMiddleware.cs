@@ -68,8 +68,9 @@ public class AuthMiddleware
         var principal = JwtUtils.ValidateToken(token);
         if (principal == null)
         {
-            context.Response.StatusCode = 401;
-            await context.Response.WriteAsJsonAsync(ApiResponse.Fail("Invalid or expired token"));
+            //invalid
+            //context.Response.StatusCode = 401;
+            //await context.Response.WriteAsJsonAsync(ApiResponse.Fail("Invalid or expired token"));
             return;
         }
         

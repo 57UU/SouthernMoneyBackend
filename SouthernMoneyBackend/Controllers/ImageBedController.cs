@@ -3,6 +3,7 @@ using Database;
 using Service;
 using SouthernMoneyBackend.Utils;
 using Microsoft.AspNetCore.Authorization;
+using SouthernMoneyBackend.Middleware;
 
 namespace SouthernMoneyBackend.Controllers;
 
@@ -17,6 +18,7 @@ public class ImageBedController : ControllerBase
     }
     const int MaxFileSize = 1024 * 1024 * 2; // 2MB
     [HttpPost("upload")]
+    [AuthorizeUser]
     public async Task<ApiResponse<object>> UploadImageAsync([FromForm]IFormFile file,string imageType,string? description=null)
     {
         if(file==null)

@@ -41,11 +41,13 @@ public static class JwtUtils
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SecretKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+        var expireTime = DateTime.UtcNow.AddHours(TokenExpiryHours);
+
         var token = new JwtSecurityToken(
             issuer: Issuer,
             audience: Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(TokenExpiryHours),
+            expires: expireTime,
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
