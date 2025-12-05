@@ -19,21 +19,21 @@ public class ImageBedController : ControllerBase
     const int MaxFileSize = 1024 * 1024 * 2; // 2MB
     [HttpPost("upload")]
     [AuthorizeUser]
-    public async Task<ApiResponse<object>> UploadImageAsync([FromForm]IFormFile file,string imageType,string? description=null)
+    public async Task<ApiResponse<object>> UploadImageAsync([FromForm]UploadImageRequest request)
     {
-        if(file==null)
+        if(request.File==null)
         {
             return ApiResponse.Fail("File is null", "FILE_NULL");
         }
-        if(file.Length>MaxFileSize)
+        if(request.File.Length>MaxFileSize)
         {
             return ApiResponse.Fail("File size exceeds 2MB", "FILE_TOO_LARGE");
         }
-        using var stream = file.OpenReadStream();
+        using var stream = request.File.OpenReadStream();
         using var memoryStream = new MemoryStream();
         await stream.CopyToAsync(memoryStream);
         var userId = HttpContext.GetUserId();
-        var imageId = await imageBedService.UploadImageAsync(memoryStream.ToArray(),userId,imageType,description);
+        var imageId = await imageBedService.UploadImageAsync(memoryStream.ToArray(),userId,request.ImageType,request.Description);
         return ApiResponse.Ok(new { ImageId = imageId });
     }
     /// <summary>

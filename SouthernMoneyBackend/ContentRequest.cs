@@ -35,7 +35,7 @@ public class PostReportRequest{
 //上传图片
 public class UploadImageRequest
 {
-    public byte[] File { get; set; } // 图片文件（必填，最大2MB）
+    public IFormFile File { get; set; } // 图片文件（必填，最大2MB）
     public string ImageType { get; set; } // 图片类型（必填）
     public string? Description { get; set; } // 图片描述（可选）
 }
