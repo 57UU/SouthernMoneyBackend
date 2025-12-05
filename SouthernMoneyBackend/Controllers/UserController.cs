@@ -77,7 +77,7 @@ public class UserController : ControllerBase
 
     // POST /user/update
     [HttpPost("update")]
-    public async Task<ApiResponse<object>> UpdateProfile([FromBody] UpdateUserProfileRequest request)
+    public async Task<ApiResponse> UpdateProfile([FromBody] UpdateUserProfileRequest request)
     {
         try
         {
@@ -88,7 +88,7 @@ public class UserController : ControllerBase
             var user = await _userService.GetUserByIdAsync(userId);
             if (user == null)
             {
-                return ApiResponse<object>.Fail("User not found");
+                return ApiResponse.Fail("User not found");
             }
             
             // 更新用户信息
@@ -97,11 +97,11 @@ public class UserController : ControllerBase
             
             await _userService.UpdateUser(userId, user);
             
-            return ApiResponse<object>.Ok(new { message = "Profile updated successfully" });
+            return ApiResponse.Ok();
         }
         catch (Exception ex)
         {
-            return ApiResponse<object>.Fail(ex.Message);
+            return ApiResponse.Fail(ex.Message);
         }
     }
 

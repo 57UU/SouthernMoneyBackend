@@ -170,14 +170,18 @@ public class UserService
     /// <returns></returns>
     public async Task UpdateUser(long userId, Database.User user)
     {
+        // 验证用户是否存在
         var existingUser = await _userRepository.GetUserByIdAsync(userId);
         if (existingUser == null)
         {
             throw new Exception("User not found");
         }
-
-        // 如果用户名有变化，检查新用户名是否已存在
-        if (existingUser.Name != user.Name)
+        
+        // 检查传入的user对象是否与数据库中的对象是同一个实例
+        bool isSame = ReferenceEquals(existingUser, user);
+        
+        // 如果不是同一个实例，需要检查用户名是否变化
+        if (!isSame && existingUser.Name != user.Name)
         {
             var userWithSameName = await _userRepository.GetUserByNameAsync(user.Name);
             if (userWithSameName != null && userWithSameName.Id != userId)
@@ -185,31 +189,11 @@ public class UserService
                 throw new Exception("Username already exists");
             }
         }
-
-        // 使用细粒度更新方式，只更新变化的字段
-        var propertiesToUpdate = new Dictionary<string, object>();
-
-        // 检查并添加需要更新的字段
-        if (existingUser.Name != user.Name)
-        {
-            propertiesToUpdate.Add("Name", user.Name);
-        }
-
-        if (existingUser.Email != user.Email)
-        {
-            propertiesToUpdate.Add("Email", user.Email);
-        }
-
-        if (existingUser.Avatar != user.Avatar)
-        {
-            propertiesToUpdate.Add("Avatar", user.Avatar);
-        }
-
-        // 如果有需要更新的字段，执行更新
-        if (propertiesToUpdate.Count > 0)
-        {
-            await _userRepository.UpdateUserPropertiesAsync(userId, propertiesToUpdate);
-        }
+        
+        // 直接保存传入的user对象
+        // 如果是同一个实例，Entity Framework会自动跟踪更改
+        // 如果不是同一个实例，Update方法会标记所有属性为已修改
+        await _userRepository.UpdateUserAsync(user);
     }
     public async Task UpdateUserAvater(long userId, Guid? avatarId)
     {
