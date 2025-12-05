@@ -186,7 +186,7 @@ public class UserService
         // Update方法会标记所有属性为已修改
         await _userRepository.UpdateUserAsync(user);
     }
-    public async Task UpdateUserAvater(long userId, Guid? avatarId)
+    public async Task UpdateUserAvater(long userId, Guid avatarId)
     {
         await _userRepository.UpdateUserAvatarAsync(userId, avatarId);
     }
@@ -232,7 +232,7 @@ public class UserService
     /// <param name="userId">用户ID</param>
     /// <param name="avatarId">新头像ID</param>
     /// <returns></returns>
-    public async Task UpdateUserAvatar(long userId, Guid? avatarId)
+    public async Task UpdateUserAvatar(long userId, Guid avatarId)
     {
         await _userRepository.UpdateUserAvatarAsync(userId, avatarId);
     }

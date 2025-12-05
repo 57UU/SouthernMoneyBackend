@@ -11,7 +11,7 @@ public class User
 
     public string? Email { get; set; }
     
-    public Guid? Avatar { get; set; }
+    public Guid Avatar { get; set; }
                               
     [JsonIgnore]
     public string Password { get; set; }//this should be hashed

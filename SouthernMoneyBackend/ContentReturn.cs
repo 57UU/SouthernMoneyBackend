@@ -47,7 +47,8 @@ public class PostDto
             Uploader = post.User == null ? null : new PostUploaderDto
             {
                 Id = post.User.Id,
-                Name = post.User.Name
+                Name = post.User.Name,
+                Avatar= post.User.Avatar
             }
         };
     }
@@ -144,7 +145,7 @@ public class UserProfileDto
             Id = user.Id,
             Name = user.Name,
             Email = user.Email ?? string.Empty,
-            Avatar = user.Avatar ?? Guid.Empty,
+            Avatar = user.Avatar,
             IsBlocked = user.IsBlocked,
             CreateTime = user.CreateTime,
             Asset = UserAssetDto.FromUserAsset(asset)
@@ -161,7 +162,7 @@ public class UserProfileDto
             Id = user.Id,
             Name = user.Name,
             Email = user.Email ?? string.Empty,
-            Avatar = user.Avatar ?? Guid.Empty,
+            Avatar = user.Avatar,
             IsBlocked = user.IsBlocked,
             CreateTime = user.CreateTime,
             Asset = assetDto
@@ -303,7 +304,7 @@ public class UserDto
             Id = user.Id,
             Name = user.Name,
             Email = user.Email ?? string.Empty,
-            Avatar = user.Avatar ?? Guid.Empty,
+            Avatar = user.Avatar,
             IsBlocked = user.IsBlocked,
             IsAdmin = user.IsAdmin,
             BlockReason = user.BlockReason,
@@ -343,7 +344,7 @@ public class UserDetailDto
             Id = user.Id,
             Name = user.Name,
             Email = user.Email ?? string.Empty,
-            Avatar = user.Avatar ?? Guid.Empty,
+            Avatar = user.Avatar,
             IsBlocked = user.IsBlocked,
             IsAdmin = user.IsAdmin,
             BlockReason = user.BlockReason,

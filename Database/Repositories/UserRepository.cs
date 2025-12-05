@@ -81,7 +81,7 @@ public class UserRepository
     /// <summary>
     /// 细粒度更新：只更新用户头像
     /// </summary>
-    public async Task<bool> UpdateUserAvatarAsync(long userId, Guid? newAvatarId)
+    public async Task<bool> UpdateUserAvatarAsync(long userId, Guid newAvatarId)
     {
         var user = await GetUserByIdAsync(userId);
         if (user == null)
