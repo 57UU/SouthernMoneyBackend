@@ -38,13 +38,6 @@ public class TransactionService
             throw new Exception("Product not found");
         }
         
-        // 验证购买者是否存在
-        var buyer = await _userRepository.GetUserByIdAsync(buyerId);
-        if (buyer == null)
-        {
-            throw new Exception("Buyer not found");
-        }
-        
         // 验证购买者不是商品的所有者
         if (product.UploaderUserId == buyerId)
         {
@@ -104,13 +97,6 @@ public class TransactionService
     /// </summary>
     public async Task<List<TransactionRecord>> GetUserPurchaseHistoryAsync(long userId)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         return await _transactionRepository.GetTransactionsByBuyerIdAsync(userId);
     }
     
@@ -119,13 +105,6 @@ public class TransactionService
     /// </summary>
     public async Task<(List<TransactionRecord> Transactions, int TotalCount)> GetUserPurchaseHistoryPagedAsync(long userId, int page, int pageSize)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         return await _transactionRepository.GetTransactionsByBuyerIdPagedAsync(userId, page, pageSize);
     }
     
@@ -134,13 +113,6 @@ public class TransactionService
     /// </summary>
     public async Task<List<TransactionRecord>> GetUserSalesHistoryAsync(long userId)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         return await _transactionRepository.GetTransactionsBySellerIdAsync(userId);
     }
     
@@ -149,13 +121,6 @@ public class TransactionService
     /// </summary>
     public async Task<List<TransactionRecord>> GetProductTransactionHistoryAsync(Guid productId)
     {
-        // 验证商品是否存在
-        var product = await _productRepository.GetProductByIdAsync(productId);
-        if (product == null)
-        {
-            throw new Exception("Product not found");
-        }
-        
         return await _transactionRepository.GetTransactionsByProductIdAsync(productId);
     }
     
@@ -183,13 +148,6 @@ public class TransactionService
     /// </summary>
     public async Task<decimal> GetUserTotalSalesAsync(long userId)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         return await _transactionRepository.GetUserTotalSalesAsync(userId);
     }
     
@@ -198,13 +156,6 @@ public class TransactionService
     /// </summary>
     public async Task<decimal> GetUserTotalSpendingAsync(long userId)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         return await _transactionRepository.GetUserTotalSpendingAsync(userId);
     }
     
@@ -213,13 +164,6 @@ public class TransactionService
     /// </summary>
     public async Task<int> GetUserPurchaseCountAsync(long userId)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         return await _transactionRepository.GetUserPurchaseCountAsync(userId);
     }
     
@@ -228,13 +172,6 @@ public class TransactionService
     /// </summary>
     public async Task<int> GetUserSaleCountAsync(long userId)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         return await _transactionRepository.GetUserSaleCountAsync(userId);
     }
     

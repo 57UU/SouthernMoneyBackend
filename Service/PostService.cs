@@ -15,7 +15,7 @@ public class PostService
         this.imageRepository = imageRepository;
     }
     
-    public async Task<Guid> CreatePostAsync(long userId, string title, string content, ICollection<string>? images, ICollection<string>? tags)
+    public async Task<Guid> CreatePostAsync(long userId, string title, string content, ICollection<Guid>? images, ICollection<string>? tags)
     {
         if (string.IsNullOrWhiteSpace(title))
         {
@@ -52,19 +52,8 @@ public class PostService
         // 处理图片
         if (images != null)
         {
-            foreach (var imageStr in images)
+            foreach (var imageId in images)
             {
-                if (!Guid.TryParse(imageStr, out var imageId))
-                {
-                    throw new ArgumentException($"Invalid image id: {imageStr}");
-                }
-                
-                var imageExists = await imageRepository.GetImageByIdAsync(imageId);
-                if (imageExists == null)
-                {
-                    throw new ArgumentException($"Image not found: {imageId}");
-                }
-                
                 post.PostImages.Add(new Database.PostImage
                 {
                     PostId = post.Id,
@@ -84,14 +73,14 @@ public class PostService
     
     public async Task<PostDetailResult> GetPostDetailAsync(Guid postId, long currentUserId)
     {
+        // 增加浏览量
+        await postRepository.IncrementPostViewCountAsync(postId);
+        
         var post = await postRepository.GetPostByIdAsync(postId);
         if (post == null)
         {
             throw new KeyNotFoundException("Post not found");
         }
-        
-        // 增加浏览量
-        await postRepository.IncrementPostViewCountAsync(postId);
         
         bool isLiked = await postRepository.IsPostLikedByUserAsync(postId, currentUserId);
         return new PostDetailResult
@@ -161,16 +150,11 @@ public class PostService
     
     public async Task<int> LikePostAsync(Guid postId, long userId)
     {
-        var post = await postRepository.GetPostByIdAsync(postId);
-        if (post == null)
-        {
-            throw new KeyNotFoundException("Post not found");
-        }
-        
         var alreadyLiked = await postRepository.IsPostLikedByUserAsync(postId, userId);
         if (alreadyLiked)
         {
-            return post.LikeCount;
+            var post = await postRepository.GetPostByIdAsync(postId);
+            return post?.LikeCount ?? 0;
         }
         
         return await postRepository.AddPostLikeAsync(postId, userId);
@@ -178,16 +162,11 @@ public class PostService
     
     public async Task<int> UnlikePostAsync(Guid postId, long userId)
     {
-        var post = await postRepository.GetPostByIdAsync(postId);
-        if (post == null)
-        {
-            throw new KeyNotFoundException("Post not found");
-        }
-        
         var alreadyLiked = await postRepository.IsPostLikedByUserAsync(postId, userId);
         if (!alreadyLiked)
         {
-            return post.LikeCount;
+            var post = await postRepository.GetPostByIdAsync(postId);
+            return post?.LikeCount ?? 0;
         }
         
         return await postRepository.RemovePostLikeAsync(postId, userId);
@@ -195,14 +174,9 @@ public class PostService
     
     public async Task<int> ReportPostAsync(Guid postId, string reason)
     {
-        var post = await postRepository.GetPostByIdAsync(postId);
-        if (post == null)
-        {
-            throw new KeyNotFoundException("Post not found");
-        }
-        
         await postRepository.ReportPostAsync(postId);
-        return post.ReportCount;
+        var post = await postRepository.GetPostByIdAsync(postId);
+        return post?.ReportCount ?? 0;
     }
     
     public async Task<bool> DeletePostAsync(Guid postId, long userId)

@@ -57,8 +57,13 @@ public class UserService
     }
     public async Task UpdatePassword(long userId, string newPassword, string currentPassword)
     {
-
-        var user = await _userRepository.GetUserByIdAsync(userId) ?? throw new Exception("User not found");
+        // 直接尝试更新密码，如果用户不存在，数据库操作会失败
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            throw new Exception("User not found");
+        }
+        
         // verify current password
         if (!VerifyPassword(currentPassword, user.Password))
         {
@@ -170,39 +175,19 @@ public class UserService
     /// <returns></returns>
     public async Task UpdateUser(long userId, Database.User user)
     {
-        // 验证用户是否存在
-        var existingUser = await _userRepository.GetUserByIdAsync(userId);
-        if (existingUser == null)
+        // 检查用户名是否已被其他用户使用
+        var userWithSameName = await _userRepository.GetUserByNameAsync(user.Name);
+        if (userWithSameName != null && userWithSameName.Id != userId)
         {
-            throw new Exception("User not found");
-        }
-        
-        // 检查传入的user对象是否与数据库中的对象是同一个实例
-        bool isSame = ReferenceEquals(existingUser, user);
-        
-        // 如果不是同一个实例，需要检查用户名是否变化
-        if (!isSame && existingUser.Name != user.Name)
-        {
-            var userWithSameName = await _userRepository.GetUserByNameAsync(user.Name);
-            if (userWithSameName != null && userWithSameName.Id != userId)
-            {
-                throw new Exception("Username already exists");
-            }
+            throw new Exception("Username already exists");
         }
         
         // 直接保存传入的user对象
-        // 如果是同一个实例，Entity Framework会自动跟踪更改
-        // 如果不是同一个实例，Update方法会标记所有属性为已修改
+        // Update方法会标记所有属性为已修改
         await _userRepository.UpdateUserAsync(user);
     }
     public async Task UpdateUserAvater(long userId, Guid? avatarId)
     {
-        var existingUser = await _userRepository.GetUserByIdAsync(userId);
-        if (existingUser == null)
-        {
-            throw new Exception("User not found");
-        }
-
         await _userRepository.UpdateUserAvatarAsync(userId, avatarId);
     }
 
@@ -238,12 +223,6 @@ public class UserService
     /// <returns></returns>
     public async Task UpdateUserEmail(long userId, string? email)
     {
-        var existingUser = await _userRepository.GetUserByIdAsync(userId);
-        if (existingUser == null)
-        {
-            throw new Exception("User not found");
-        }
-
         await _userRepository.UpdateUserEmailAsync(userId, email);
     }
 
@@ -255,12 +234,6 @@ public class UserService
     /// <returns></returns>
     public async Task UpdateUserAvatar(long userId, Guid? avatarId)
     {
-        var existingUser = await _userRepository.GetUserByIdAsync(userId);
-        if (existingUser == null)
-        {
-            throw new Exception("User not found");
-        }
-
         await _userRepository.UpdateUserAvatarAsync(userId, avatarId);
     }
 
@@ -273,12 +246,6 @@ public class UserService
     /// <returns></returns>
     public async Task UpdateUserBlockStatus(long userId, bool isBlocked, string? blockReason = null)
     {
-        var existingUser = await _userRepository.GetUserByIdAsync(userId);
-        if (existingUser == null)
-        {
-            throw new Exception("User not found");
-        }
-
         var propertiesToUpdate = new Dictionary<string, object>
         {
             { "IsBlocked", isBlocked }
@@ -309,12 +276,6 @@ public class UserService
     /// <returns></returns>
     public async Task UpdateUserAdminStatus(long userId, bool isAdmin)
     {
-        var existingUser = await _userRepository.GetUserByIdAsync(userId);
-        if (existingUser == null)
-        {
-            throw new Exception("User not found");
-        }
-
         await _userRepository.UpdateUserPropertyAsync(userId, "IsAdmin", isAdmin);
     }
 
@@ -327,17 +288,12 @@ public class UserService
     public async Task UpdateUserAccountStatus(long userId, bool hasAccount)
     {
         var existingUser = await _userRepository.GetUserByIdAsync(userId);
-        if (existingUser == null)
-        {
-            throw new Exception("User not found");
-        }
-
         var propertiesToUpdate = new Dictionary<string, object>
         {
             { "HasAccount", hasAccount }
         };
 
-        if (hasAccount && !existingUser.AccountOpenedAt.HasValue)
+        if (hasAccount && existingUser != null && !existingUser.AccountOpenedAt.HasValue)
         {
             propertiesToUpdate.Add("AccountOpenedAt", DateTime.UtcNow);
         }
@@ -353,12 +309,6 @@ public class UserService
     /// <returns></returns>
     public async Task UpdateUserBalance(long userId, decimal balance)
     {
-        var existingUser = await _userRepository.GetUserByIdAsync(userId);
-        if (existingUser == null)
-        {
-            throw new Exception("User not found");
-        }
-
         await _userRepository.UpdateUserPropertyAsync(userId, "Balance", balance);
     }
 }

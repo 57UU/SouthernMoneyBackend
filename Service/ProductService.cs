@@ -30,13 +30,6 @@ public class ProductService
     /// </summary>
     public async Task<Product> CreateProductAsync(string name, decimal price, string description, Guid categoryId, long userId)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         // 验证分类是否存在
         var categoryExists = await _categoryRepository.CategoryExistsAsync(categoryId);
         if (!categoryExists)
@@ -72,13 +65,6 @@ public class ProductService
     /// </summary>
     public async Task<List<Product>> GetUserProductsAsync(long userId)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         return await _productRepository.GetProductsByUserIdAsync(userId);
     }
     
@@ -87,13 +73,6 @@ public class ProductService
     /// </summary>
     public async Task<(List<Product> Products, int TotalCount)> GetUserProductsPagedAsync(long userId, int page, int pageSize)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         if (page <= 0) page = 1;
         if (pageSize <= 0) pageSize = 10;
         
@@ -124,13 +103,6 @@ public class ProductService
     /// </summary>
     public async Task<List<Product>> GetProductsByCategoryAsync(Guid categoryId)
     {
-        // 验证分类是否存在
-        var categoryExists = await _categoryRepository.CategoryExistsAsync(categoryId);
-        if (!categoryExists)
-        {
-            throw new Exception("Category not found");
-        }
-        
         return await _productRepository.GetProductsByCategoryIdAsync(categoryId);
     }
     
@@ -139,13 +111,6 @@ public class ProductService
     /// </summary>
     public async Task<(List<Product> Products, int TotalCount)> GetProductsByCategoryPagedAsync(Guid categoryId, int page, int pageSize)
     {
-        // 验证分类是否存在
-        var categoryExists = await _categoryRepository.CategoryExistsAsync(categoryId);
-        if (!categoryExists)
-        {
-            throw new Exception("Category not found");
-        }
-        
         if (page <= 0) page = 1;
         if (pageSize <= 0) pageSize = 10;
         
@@ -186,13 +151,6 @@ public class ProductService
     /// </summary>
     public async Task<(List<Product> Products, int TotalCount)> GetProductsByCategoryAndSearchPagedAsync(Guid categoryId, string keyword, int page, int pageSize)
     {
-        // 验证分类是否存在
-        var categoryExists = await _categoryRepository.CategoryExistsAsync(categoryId);
-        if (!categoryExists)
-        {
-            throw new Exception("Category not found");
-        }
-        
         if (string.IsNullOrWhiteSpace(keyword))
         {
             return (new List<Product>(), 0);
@@ -209,13 +167,6 @@ public class ProductService
     /// </summary>
     public async Task<(List<Product> Products, int TotalCount)> GetProductsByCategoryIdPagedAsync(Guid categoryId, int page, int pageSize)
     {
-        // 验证分类是否存在
-        var categoryExists = await _categoryRepository.CategoryExistsAsync(categoryId);
-        if (!categoryExists)
-        {
-            throw new Exception("Category not found");
-        }
-        
         if (page <= 0) page = 1;
         if (pageSize <= 0) pageSize = 10;
         
@@ -227,13 +178,6 @@ public class ProductService
     /// </summary>
     public async Task<(List<Product> Products, int TotalCount)> GetProductsByCategoryIdAndSearchPagedAsync(Guid categoryId, string keyword, int page, int pageSize)
     {
-        // 验证分类是否存在
-        var categoryExists = await _categoryRepository.CategoryExistsAsync(categoryId);
-        if (!categoryExists)
-        {
-            throw new Exception("Category not found");
-        }
-        
         if (string.IsNullOrWhiteSpace(keyword))
         {
             return (new List<Product>(), 0);
@@ -312,13 +256,6 @@ public class ProductService
     /// </summary>
     public async Task<int> GetUserProductCountAsync(long userId)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         return await _productRepository.GetUserProductCountAsync(userId);
     }
     
@@ -327,13 +264,6 @@ public class ProductService
     /// </summary>
     public async Task<decimal> GetAveragePriceByCategoryAsync(Guid categoryId)
     {
-        // 验证分类是否存在
-        var categoryExists = await _categoryRepository.CategoryExistsAsync(categoryId);
-        if (!categoryExists)
-        {
-            throw new Exception("Category not found");
-        }
-        
         var avgPrice = await _productRepository.GetAveragePriceByCategoryAsync(categoryId);
         
         // 如果没有该分类的商品，返回0

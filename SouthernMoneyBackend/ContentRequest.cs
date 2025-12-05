@@ -22,7 +22,7 @@ public class RefreshTokenRequest
 public class PostRequest{
     public string Title { get; set; }
     public string Content { get; set; }
-    public ICollection<string> ImageIds { get; set; }
+    public ICollection<Guid> ImageIds { get; set; }
     public ICollection<string> Tags { get; set; }
 }
 

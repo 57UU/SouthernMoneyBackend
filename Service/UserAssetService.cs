@@ -25,13 +25,6 @@ public class UserAssetService
     /// </summary>
     public async Task<UserAsset> CreateUserAssetAsync(long userId, decimal initialBalance = 0)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         // 检查用户资产记录是否已存在
         var existingAsset = await _userAssetRepository.GetUserAssetByUserIdAsync(userId);
         if (existingAsset != null)
@@ -58,13 +51,6 @@ public class UserAssetService
     /// </summary>
     public async Task<UserAsset?> GetUserAssetByUserIdAsync(long userId)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         return await _userAssetRepository.GetUserAssetByUserIdAsync(userId);
     }
     
@@ -73,13 +59,6 @@ public class UserAssetService
     /// </summary>
     public async Task<UserAsset> UpdateUserAssetAsync(UserAsset asset)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(asset.UserId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         asset.UpdatedAt = DateTime.UtcNow;
         return await _userAssetRepository.UpdateUserAssetAsync(asset);
     }
@@ -89,13 +68,6 @@ public class UserAssetService
     /// </summary>
     public async Task<bool> DeleteUserAssetAsync(long userId)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         return await _userAssetRepository.DeleteUserAssetAsync(userId);
     }
     
@@ -131,13 +103,6 @@ public class UserAssetService
     /// </summary>
     public async Task<bool> UpdateUserBalanceAsync(long userId, decimal newBalance)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         return await _userAssetRepository.UpdateUserBalanceAsync(userId, newBalance);
     }
     
@@ -146,13 +111,6 @@ public class UserAssetService
     /// </summary>
     public async Task<bool> AddToUserBalanceAsync(long userId, decimal amount)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         if (amount <= 0)
         {
             throw new Exception("Amount must be positive");
@@ -166,13 +124,6 @@ public class UserAssetService
     /// </summary>
     public async Task<bool> SubtractFromUserBalanceAsync(long userId, decimal amount)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         if (amount <= 0)
         {
             throw new Exception("Amount must be positive");
@@ -186,13 +137,6 @@ public class UserAssetService
     /// </summary>
     public async Task<bool> UpdateUserEarningsAsync(long userId, decimal todayEarn, decimal accumulatedEarn)
     {
-        // 验证用户是否存在
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-        
         if (todayEarn < 0 || accumulatedEarn < 0)
         {
             throw new Exception("Earnings cannot be negative");

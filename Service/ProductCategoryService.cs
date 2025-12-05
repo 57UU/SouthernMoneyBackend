@@ -68,7 +68,6 @@ public class ProductCategoryService
     /// </summary>
     public async Task<ProductCategory> UpdateCategoryAsync(Guid id, string name, Guid coverImageId)
     {
-        // 验证分类是否存在
         var category = await _categoryRepository.GetCategoryByIdAsync(id);
         if (category == null)
         {
@@ -96,13 +95,6 @@ public class ProductCategoryService
     /// </summary>
     public async Task<bool> DeleteCategoryAsync(Guid id)
     {
-        // 验证分类是否存在
-        var category = await _categoryRepository.GetCategoryByIdAsync(id);
-        if (category == null)
-        {
-            throw new Exception("Category not found");
-        }
-        
         return await _categoryRepository.DeleteCategoryAsync(id);
     }
     

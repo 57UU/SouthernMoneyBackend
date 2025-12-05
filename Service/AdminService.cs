@@ -23,7 +23,7 @@ public class AdminService
         var user = await userRepository.GetUserByIdAsync(userId);
         if (user == null)
         {
-            throw new Exception("User not found");
+            return;
         }
 
         if (user.IsAdmin)
@@ -51,7 +51,7 @@ public class AdminService
         var user = await userRepository.GetUserByIdAsync(userId);
         if (user == null)
         {
-            throw new Exception("User not found");
+            return;
         }
 
         if (!user.IsBlocked)
@@ -69,7 +69,7 @@ public class AdminService
         var user = await userRepository.GetUserByIdAsync(userId);
         if (user == null)
         {
-            throw new Exception("User not found");
+            return;
         }
         if (user.IsAdmin && !alreadyAdminOk)
         {
@@ -87,7 +87,7 @@ public class AdminService
         var user = await userRepository.GetUserByIdAsync(userId);
         if (user == null)
         {
-            throw new Exception("User not found");
+            return;
         }
 
         if (user.IsBlocked)
@@ -112,12 +112,6 @@ public class AdminService
     /// </summary>
     public async Task HandleReportAsync(Guid postId, bool isBlocked, string handleReason)
     {
-        var post = await postRepository.GetPostByIdAsync(postId);
-        if (post == null)
-        {
-            throw new Exception("Post not found");
-        }
-        
         await postRepository.TogglePostBlockStatusAsync(postId, isBlocked);
     }
 }
