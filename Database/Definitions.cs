@@ -73,7 +73,7 @@ public class Image{
     // 用户导航属性
     [JsonIgnore]
     public User User { get; set; }
-    public DateTime CreateTime { get; set; }= DateTime.Now;
+    public DateTime CreateTime { get; set; }= DateTime.UtcNow;
     public string? Description { get; set; }
     public string ImageType { get; set; }
     public byte[] Data { get; set; }
@@ -86,7 +86,7 @@ public class Post{
     // 用户导航属性
     [JsonIgnore]
     public User User { get; set; }
-    public DateTime CreateTime { get; set; }
+    public DateTime CreateTime { get; set; } = DateTime.UtcNow;
     public string Title { get; set; }
     public string Content { get; set; }
     public int ReportCount { get; set; } = 0;

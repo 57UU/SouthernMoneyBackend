@@ -220,7 +220,6 @@ public class PostService
             post.Content = content;
         }
         
-        post.CreateTime = DateTime.UtcNow;
         await postRepository.UpdatePostAsync(post);
         return true;
     }
