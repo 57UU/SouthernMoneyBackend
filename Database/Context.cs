@@ -215,7 +215,7 @@ public class AppDbContext : DbContext
             
             // 配置与Post的关系
             entity.HasOne(e => e.Post)
-                  .WithMany() // 一个帖子可以有多个封禁记录
+                  .WithMany(p => p.PostBlocks) // 一个帖子可以有多个封禁记录
                   .HasForeignKey(e => e.PostId)
                   .IsRequired();
             

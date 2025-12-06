@@ -226,9 +226,9 @@ public class PostRepository
     }
     
     /// <summary>
-    /// 记录帖子封禁信息
+    /// 记录帖子处理历史
     /// </summary>
-    public async Task<bool> RecordPostBlockAsync(Guid postId, long adminUserId, string blockReason)
+    public async Task<bool> RecordPostHandleHistoryAsync(Guid postId, long adminUserId, string handleReason, bool isBlocked)
     {
         var post = await _context.Posts.FindAsync(postId);
         if (post == null)
@@ -236,35 +236,16 @@ public class PostRepository
             return false;
         }
         
-        // 检查是否已经存在封禁记录
-        var existingBlock = await _context.PostBlocks
-            .FirstOrDefaultAsync(pb => pb.PostId == postId);
-        
-        if (existingBlock != null)
+        // 创建新的处理记录
+        var postBlock = new PostBlock
         {
-            // 更新现有记录
-            existingBlock.BlockReason = blockReason;
-            existingBlock.BlockedAt = DateTime.UtcNow;
-            existingBlock.AdminUserId = adminUserId;
-        }
-        else
-        {
-            // 创建新的封禁记录
-            var postBlock = new PostBlock
-            {
-                PostId = postId,
-                AdminUserId = adminUserId,
-                BlockReason = blockReason,
-                BlockedAt = DateTime.UtcNow
-            };
-            
-            _context.PostBlocks.Add(postBlock);
-        }
+            PostId = postId,
+            AdminUserId = adminUserId,
+            BlockReason = isBlocked ? handleReason : $"处理举报: {handleReason} (未封禁)",
+            BlockedAt = DateTime.UtcNow
+        };
         
-        // 更新帖子状态
-        post.IsBlocked = true;
-        _context.Posts.Update(post);
-        
+        _context.PostBlocks.Add(postBlock);
         await _context.SaveChangesAsync();
         return true;
     }
@@ -402,6 +383,8 @@ public class PostRepository
             .ThenInclude(pi => pi.Image)
             .Include(p => p.PostTags)
             .Include(p => p.PostLikes)
+            .Include(p => p.PostBlocks)
+            .ThenInclude(pb => pb.AdminUser)
             .Where(p => p.ReportCount > 0);
         
         // 根据 isBlocked 参数过滤
