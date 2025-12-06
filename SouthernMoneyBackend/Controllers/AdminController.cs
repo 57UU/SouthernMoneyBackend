@@ -248,8 +248,10 @@ public class AdminController : ControllerBase
 
         try
         {
-            await _adminService.HandleReportAsync(req.PostId, req.IsBlocked, req.HandleReason ?? "No reason");
-            return ApiResponse<object>.Ok(new { success = true, isBlocked = req.IsBlocked });
+            // 获取当前管理员ID
+            var adminUserId = HttpContext.GetUserId();
+            await _adminService.HandleReportAsync(req.PostId, req.IsBlocked, req.HandleReason ?? "No reason", adminUserId);
+            return ApiResponse.Ok();
         }
         catch (Exception ex)
         {

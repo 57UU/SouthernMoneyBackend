@@ -110,8 +110,18 @@ public class AdminService
     /// <summary>
     /// 处理举报帖子
     /// </summary>
-    public async Task HandleReportAsync(Guid postId, bool isBlocked, string handleReason)
+    public async Task HandleReportAsync(Guid postId, bool isBlocked, string handleReason, long adminUserId)
     {
-        await postRepository.TogglePostBlockStatusAsync(postId, isBlocked);
+        if (isBlocked)
+        {
+            // 如果需要封禁帖子，记录封禁信息
+            await postRepository.RecordPostBlockAsync(postId, adminUserId, handleReason);
+        }
+        else
+        {
+            // 如果不需要封禁，重置举报数并更新帖子状态
+            await postRepository.ResetPostReportCountAsync(postId);
+            await postRepository.TogglePostBlockStatusAsync(postId, false);
+        }
     }
 }

@@ -96,6 +96,7 @@ public class Post{
     public ICollection<PostImage> PostImages { get; set; } = new List<PostImage>();
     public ICollection<PostTags> PostTags { get; set; } = new List<PostTags>();
     public ICollection<PostLike> PostLikes { get; set; } = new List<PostLike>();
+    public ICollection<PostBlock> PostBlocks { get; set; } = new List<PostBlock>();
 }
 
 public class PostImage
@@ -200,6 +201,28 @@ public class Notification
     public bool IsRead { get; set; } = false;
     // 创建时间
     public DateTime CreateTime { get; set; } = DateTime.UtcNow;
+}
+
+public class PostBlock
+{
+
+    [JsonIgnore]
+    public Guid Id { get; set; }
+    // 帖子ID外键
+    [JsonIgnore]
+    public Guid PostId { get; set; }
+    // 帖子导航属性
+    [JsonIgnore]
+    public Post Post { get; set; }
+    // 封禁原因
+    public string BlockReason { get; set; }
+    // 封禁时间
+    public DateTime BlockedAt { get; set; } = DateTime.UtcNow;
+    // 执行封禁的管理员ID
+    [JsonIgnore]
+    public long AdminUserId { get; set; }
+    // 管理员导航属性
+    public User AdminUser { get; set; }
 }
 
 #pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。

@@ -22,6 +22,7 @@ public class PostDto
     public int LikeCount { get; set; }
     public bool IsBlocked { get; set; }
     public bool IsLiked { get; set; }
+    public List<PostBlockDto>? PostBlocks { get; set; }
     public List<string> Tags { get; set; } = new();
     public List<Guid> ImageIds { get; set; } = new();
     public PostUploaderDto? Uploader { get; set; }
@@ -42,6 +43,7 @@ public class PostDto
             LikeCount = post.LikeCount,
             IsBlocked = post.IsBlocked,
             IsLiked = isLiked,
+            PostBlocks = PostBlockDto.FromPostBlockList(post.PostBlocks?.OrderByDescending(pb => pb.BlockedAt)),
             Tags = post.PostTags?.Select(t => t.Tag).ToList() ?? new List<string>(),
             ImageIds = post.PostImages?.Select(pi => pi.ImageId).ToList() ?? new List<Guid>(),
             Uploader = post.User == null ? null : new PostUploaderDto
@@ -61,12 +63,46 @@ public class PostDto
         return posts.Select(p => FromPost(p, likedPostIds.ContainsKey(p.Id))).ToList();
     }
 }
-
+public class PostBlockDto{
+    public DateTime BlockedAt { get; set; }
+    public string Reason { get; set; }
+    public PostUploaderDto Operator { get; set; }
+    
+    /// <summary>
+    /// 从PostBlock实体创建PostBlockDto的工厂构造函数
+    /// </summary>
+    public static PostBlockDto FromPostBlock(Database.PostBlock postBlock)
+    {
+        return new PostBlockDto
+        {
+            BlockedAt = postBlock.BlockedAt,
+            Reason = postBlock.BlockReason,
+            Operator = PostUploaderDto.FromUser(postBlock.AdminUser)
+        };
+    }
+    
+    /// <summary>
+    /// 从PostBlock实体列表创建PostBlockDto列表
+    /// </summary>
+    public static List<PostBlockDto>? FromPostBlockList(IEnumerable<Database.PostBlock>? postBlocks)
+    {
+        return postBlocks?.Select(FromPostBlock).ToList();
+    }
+}
 public class PostUploaderDto
 {
     public long Id { get; set; }
     public string Name { get; set; }
     public Guid Avatar { get; set; }
+    public static PostUploaderDto FromUser(Database.User user)
+    {
+        return new PostUploaderDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Avatar = user.Avatar
+        };
+    }
 }
 
 public class PostsPageDto

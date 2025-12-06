@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<PostImage> PostImages { get; set; }
     public DbSet<PostTags> PostTags { get; set; }
     public DbSet<PostLike> PostLikes { get; set; }
+    public DbSet<PostBlock> PostBlocks { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<TransactionRecord> TransactionRecords { get; set; }
     public DbSet<ProductCategory> ProductCategories { get; set; }
@@ -205,6 +206,27 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Content).IsRequired();
             entity.Property(e => e.Type).IsRequired();
             entity.Property(e => e.IsRead).HasDefaultValue(false);
+        });
+        
+        // 配置PostBlock实体
+        modelBuilder.Entity<PostBlock>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            // 配置与Post的关系
+            entity.HasOne(e => e.Post)
+                  .WithMany() // 一个帖子可以有多个封禁记录
+                  .HasForeignKey(e => e.PostId)
+                  .IsRequired();
+            
+            // 配置与AdminUser的关系
+            entity.HasOne(e => e.AdminUser)
+                  .WithMany() // 一个管理员可以封禁多个帖子
+                  .HasForeignKey(e => e.AdminUserId)
+                  .IsRequired();
+            
+            entity.Property(e => e.BlockReason).IsRequired();
+            entity.Property(e => e.BlockedAt).IsRequired();
         });
     }
 

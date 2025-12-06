@@ -226,6 +226,67 @@ public class PostRepository
     }
     
     /// <summary>
+    /// 记录帖子封禁信息
+    /// </summary>
+    public async Task<bool> RecordPostBlockAsync(Guid postId, long adminUserId, string blockReason)
+    {
+        var post = await _context.Posts.FindAsync(postId);
+        if (post == null)
+        {
+            return false;
+        }
+        
+        // 检查是否已经存在封禁记录
+        var existingBlock = await _context.PostBlocks
+            .FirstOrDefaultAsync(pb => pb.PostId == postId);
+        
+        if (existingBlock != null)
+        {
+            // 更新现有记录
+            existingBlock.BlockReason = blockReason;
+            existingBlock.BlockedAt = DateTime.UtcNow;
+            existingBlock.AdminUserId = adminUserId;
+        }
+        else
+        {
+            // 创建新的封禁记录
+            var postBlock = new PostBlock
+            {
+                PostId = postId,
+                AdminUserId = adminUserId,
+                BlockReason = blockReason,
+                BlockedAt = DateTime.UtcNow
+            };
+            
+            _context.PostBlocks.Add(postBlock);
+        }
+        
+        // 更新帖子状态
+        post.IsBlocked = true;
+        _context.Posts.Update(post);
+        
+        await _context.SaveChangesAsync();
+        return true;
+    }
+    
+    /// <summary>
+    /// 重置帖子举报数
+    /// </summary>
+    public async Task<bool> ResetPostReportCountAsync(Guid postId)
+    {
+        var post = await _context.Posts.FindAsync(postId);
+        if (post == null)
+        {
+            return false;
+        }
+        
+        post.ReportCount = 0;
+        _context.Posts.Update(post);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+    
+    /// <summary>
     /// 添加帖子标签
     /// </summary>
     public async Task<PostTags> AddPostTagAsync(PostTags postTag)
