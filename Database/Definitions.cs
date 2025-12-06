@@ -58,6 +58,7 @@ public class User
     public decimal Balance { get; set; } = 0;
 
     public ICollection<PostLike> PostLikes { get; set; } = new List<PostLike>();
+    [JsonIgnore]
     public ICollection<Product> Products { get; set; } = new List<Product>();
     public ICollection<TransactionRecord> PurchasedProducts { get; set; } = new List<TransactionRecord>();
     public ICollection<UserFavoriteCategory> FavoriteCategories { get; set; } = new List<UserFavoriteCategory>();
@@ -169,6 +170,7 @@ public class ProductCategory
     public string Name { get; set; }
     public Guid CoverImageId { get; set; }
     public DateTime CreateTime { get; set; } = DateTime.UtcNow;
+    [JsonIgnore]
     
     public ICollection<Product> Products { get; set; } = new List<Product>();
     public ICollection<UserFavoriteCategory> FavoriteUsers { get; set; } = new List<UserFavoriteCategory>();
@@ -192,6 +194,7 @@ public class Notification
     // 接收用户ID外键
     public long UserId { get; set; }
     // 用户导航属性
+    [JsonIgnore]
     public User User { get; set; }
     // 通知内容
     public string Content { get; set; }
