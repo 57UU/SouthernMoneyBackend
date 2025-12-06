@@ -95,7 +95,8 @@ public static class JwtUtils
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = Issuer,
                 ValidAudience = Audience,
-                IssuerSigningKey = key
+                IssuerSigningKey = key,
+                ClockSkew = TimeSpan.FromSeconds(30)
             };
 
             var principal = tokenHandler.ValidateToken(refreshToken, validationParameters, out _);
