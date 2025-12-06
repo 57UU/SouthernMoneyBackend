@@ -48,7 +48,7 @@ public class UserService
             // 创建欢迎通知
             await _notificationService.CreateNotificationAsync(
                 user.Id, 
-                $"欢迎加入SouthernMoney，{user.Name}！感谢您的注册，祝您使用愉快！", 
+                $"欢迎加入南方财富，{user.Name}！感谢您的注册，祝您使用愉快！", 
                 "system"
             );
             
@@ -81,6 +81,14 @@ public class UserService
         }
         user.Password = Utils.HashPassword(newPassword);
         await _userRepository.UpdateUserAsync(user);
+        
+        // 发送密码更改通知
+        await _notificationService.CreateNotificationAsync(
+            userId,
+            $"您的账户密码已于 {DateTime.Now:yyyy-MM-dd HH:mm} 成功更改。如果这不是您本人的操作，请立即联系管理员。",
+            "system",
+            userId
+        );
     }
 
     /// <summary>

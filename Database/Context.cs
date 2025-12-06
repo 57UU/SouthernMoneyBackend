@@ -206,6 +206,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Content).IsRequired();
             entity.Property(e => e.Type).IsRequired();
             entity.Property(e => e.IsRead).HasDefaultValue(false);
+            entity.Property(e => e.SubjectUserId);
         });
         
         // 配置PostBlock实体
@@ -237,3 +238,4 @@ public class AppDbContext : DbContext
     }
 
 }
+

@@ -61,13 +61,14 @@ public class NotificationService
     /// <summary>
     /// 创建通知
     /// </summary>
-    public async Task<Database.Notification> CreateNotificationAsync(long userId, string content, string type = "system")
+    public async Task<Database.Notification> CreateNotificationAsync(long userId, string content, string type = "system", long? subjectUserId = null)
     {
         var notification = new Database.Notification
         {
             UserId = userId,
             Content = content,
-            Type = type
+            Type = type,
+            SubjectUserId = subjectUserId == userId ? null : subjectUserId
         };
         
         return await _notificationRepository.AddNotificationAsync(notification);

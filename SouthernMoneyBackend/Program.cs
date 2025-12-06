@@ -108,17 +108,14 @@ if (isDevEnv)
         options.SwaggerEndpoint("/openapi/v1.json", "v1"); // openapi doc
         options.InjectJavascript("/swagger-js");
     });
-    //register test user 
-    using (var scope = app.Services.CreateScope())
-    {
-        var userService=scope.ServiceProvider.GetService<UserService>()!;
-        long userId=await userService.RegisterUser(User.CreateUser("test","123"), existIsOk: true);
-        var adminService=scope.ServiceProvider.GetService<AdminService>()!;
-        await adminService.SetAdmin(userId, alreadyAdminOk: true);
-    }
-    
-    
-
+}
+//register default user 
+using (var scope = app.Services.CreateScope())
+{
+    var userService = scope.ServiceProvider.GetService<UserService>()!;
+    long userId = await userService.RegisterUser(User.CreateUser("test", "123", 114514), existIsOk: true);
+    var adminService = scope.ServiceProvider.GetService<AdminService>()!;
+    await adminService.SetAdmin(userId, alreadyAdminOk: true);
 }
 
 

@@ -8,11 +8,15 @@ public class PostService
 {
     private readonly Database.Repositories.PostRepository postRepository;
     private readonly Database.Repositories.ImageRepository imageRepository;
+    private readonly NotificationService notificationService;
+    private readonly Database.Repositories.UserRepository userRepository;
     
-    public PostService(Database.Repositories.PostRepository postRepository, Database.Repositories.ImageRepository imageRepository)
+    public PostService(Database.Repositories.PostRepository postRepository, Database.Repositories.ImageRepository imageRepository, NotificationService notificationService, Database.Repositories.UserRepository userRepository)
     {
         this.postRepository = postRepository;
         this.imageRepository = imageRepository;
+        this.notificationService = notificationService;
+        this.userRepository = userRepository;
     }
     
     public async Task<Guid> CreatePostAsync(long userId, string title, string content, ICollection<Guid>? images, ICollection<string>? tags)
@@ -141,6 +145,29 @@ public class PostService
             return post?.LikeCount ?? 0;
         }
         
+        // 获取帖子信息
+        var postInfo = await postRepository.GetPostByIdAsync(postId);
+        if (postInfo == null)
+        {
+            return 0;
+        }
+        
+        // 如果不是自己点赞自己的帖子，发送通知
+        if (postInfo.UploaderUserId != userId)
+        {
+            // 获取点赞用户信息
+            var likeUser = await userRepository.GetUserByIdAsync(userId);
+            string userName = likeUser?.Name ?? "某位用户";
+            
+            // 发送点赞通知
+            await notificationService.CreateNotificationAsync(
+                postInfo.UploaderUserId,
+                $"{userName} 点赞了您的帖子《{postInfo.Title}》",
+                "like",
+                userId
+            );
+        }
+        
         return await postRepository.AddPostLikeAsync(postId, userId);
     }
     
@@ -153,13 +180,53 @@ public class PostService
             return post?.LikeCount ?? 0;
         }
         
+        // 获取帖子信息
+        var postInfo = await postRepository.GetPostByIdAsync(postId);
+        if (postInfo == null)
+        {
+            return 0;
+        }
+        
+        // 如果不是自己取消点赞自己的帖子，发送通知
+        if (postInfo.UploaderUserId != userId)
+        {
+            // 获取取消点赞用户信息
+            var unlikeUser = await userRepository.GetUserByIdAsync(userId);
+            string userName = unlikeUser?.Name ?? "某位用户";
+            
+            // 发送取消点赞通知
+            await notificationService.CreateNotificationAsync(
+                postInfo.UploaderUserId,
+                $"{userName} 取消点赞了您的帖子《{postInfo.Title}》",
+                "like",
+                userId
+            );
+        }
+        
         return await postRepository.RemovePostLikeAsync(postId, userId);
     }
     
     public async Task<int> ReportPostAsync(Guid postId, string reason)
     {
+        // 获取帖子信息
+        var postInfo = await postRepository.GetPostByIdAsync(postId);
+        if (postInfo == null)
+        {
+            return 0;
+        }
+        
+        // 举报帖子
         await postRepository.ReportPostAsync(postId);
         var post = await postRepository.GetPostByIdAsync(postId);
+        
+        // 发送举报通知给帖子作者
+        await notificationService.CreateNotificationAsync(
+            postInfo.UploaderUserId,
+            $"您的帖子《{postInfo.Title}》已被举报。原因：{reason}",
+            "system",
+            null // 举报是系统行为，没有特定操作用户
+        );
+        
         return post?.ReportCount ?? 0;
     }
     

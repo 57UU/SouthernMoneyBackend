@@ -5,14 +5,17 @@ public class AdminService
     private readonly Database.Repositories.UserRepository userRepository;
     private readonly Database.Repositories.ImageRepository imageRepository;
     private readonly Database.Repositories.PostRepository postRepository;
+    private readonly NotificationService notificationService;
 
     public AdminService(Database.Repositories.UserRepository userRepository,
                         Database.Repositories.ImageRepository imageRepository,
-                        Database.Repositories.PostRepository postRepository)
+                        Database.Repositories.PostRepository postRepository,
+                        NotificationService notificationService)
     {
         this.userRepository = userRepository;
         this.imageRepository = imageRepository;
         this.postRepository = postRepository;
+        this.notificationService = notificationService;
     }
     
     /// <summary>
@@ -41,6 +44,13 @@ public class AdminService
         user.BlockedAt = DateTime.UtcNow;
 
         await userRepository.UpdateUserAsync(user);
+        
+        // 发送封禁通知
+        await notificationService.CreateNotificationAsync(
+            userId,
+            $"您的账户已被封禁。原因：{reason}",
+            "system"
+        );
     }
 
     /// <summary>
@@ -64,6 +74,13 @@ public class AdminService
         user.BlockedAt = null;
 
         await userRepository.UpdateUserAsync(user);
+        
+        // 发送解封通知
+        await notificationService.CreateNotificationAsync(
+            userId,
+            "您的账户已被解封，您可以正常使用所有功能了。",
+            "system"
+        );
     }
     public async Task SetAdmin(long userId,bool alreadyAdminOk = false){
         var user = await userRepository.GetUserByIdAsync(userId);
@@ -112,6 +129,13 @@ public class AdminService
     /// </summary>
     public async Task HandleReportAsync(Guid postId, bool isBlocked, string handleReason, long adminUserId)
     {
+        // 获取帖子信息
+        var post = await postRepository.GetPostByIdAsync(postId);
+        if (post == null)
+        {
+            return;
+        }
+        
         // 记录操作历史
         await postRepository.RecordPostHandleHistoryAsync(postId, adminUserId, handleReason, isBlocked);
         
@@ -120,12 +144,26 @@ public class AdminService
         {
             // 封禁帖子
             await postRepository.TogglePostBlockStatusAsync(postId, true);
+            
+            // 发送帖子封禁通知给帖子作者
+            await notificationService.CreateNotificationAsync(
+                post.UploaderUserId,
+                $"您的帖子《{post.Title}》已被封禁。原因：{handleReason}",
+                "system"
+            );
         }
         else
         {
             // 重置举报数并取消封禁状态
             await postRepository.ResetPostReportCountAsync(postId);
             await postRepository.TogglePostBlockStatusAsync(postId, false);
+            
+            // 发送帖子解封通知给帖子作者
+            await notificationService.CreateNotificationAsync(
+                post.UploaderUserId,
+                $"您的帖子《{post.Title}》已通过审核，恢复正常显示。",
+                "system"
+            );
         }
     }
 }

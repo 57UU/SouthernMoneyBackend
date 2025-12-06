@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using System.Text.Json.Serialization;
 
 namespace Database;
@@ -15,11 +16,11 @@ public class User
                               
     [JsonIgnore]
     public string Password { get; set; }//this should be hashed
-    public static User CreateUser(string name, string password)
+    public static User CreateUser(string name, string password,long? id=null)
     {
         return new User
         {
-            Id = new Random().NextInt64(),
+            Id = id.HasValue ? id.Value : new Random().NextInt64(),
             Name = name,
             Password = password,
             IsAdmin = false,
@@ -196,6 +197,10 @@ public class Notification
     // 用户导航属性
     [JsonIgnore]
     public User User { get; set; }
+    public long? SubjectUserId { get; set; }
+    // 通知主体用户导航属性
+    [JsonIgnore]
+    public User SubjectUser { get; set; }
     // 通知内容
     public string Content { get; set; }
     // 通知类型：system/activity/message
@@ -230,3 +235,4 @@ public class PostBlock
 }
 
 #pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
+
