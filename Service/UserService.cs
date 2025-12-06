@@ -11,10 +11,12 @@ namespace Service;
 public class UserService
 {
     private readonly Database.Repositories.UserRepository _userRepository;
+    private readonly NotificationService _notificationService;
 
-    public UserService(Database.Repositories.UserRepository userRepository)
+    public UserService(Database.Repositories.UserRepository userRepository, NotificationService notificationService)
     {
         _userRepository = userRepository;
+        _notificationService = notificationService;
     }
 
     /// <summary>
@@ -42,6 +44,14 @@ public class UserService
             //hash passwd
             user.Password = Utils.HashPassword(user.Password);
             await _userRepository.AddUserAsync(user);
+            
+            // 创建欢迎通知
+            await _notificationService.CreateNotificationAsync(
+                user.Id, 
+                $"欢迎加入SouthernMoney，{user.Name}！感谢您的注册，祝您使用愉快！", 
+                "system"
+            );
+            
             return user.Id;
         }
     }
