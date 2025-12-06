@@ -171,6 +171,17 @@ public class PostRepository
     }
     
     /// <summary>
+    /// 批量检查用户对多个帖子的点赞状态
+    /// </summary>
+    public async Task<HashSet<Guid>> GetUserLikedPostsAsync(IEnumerable<Guid> postIds, long userId)
+    {
+        return await _context.PostLikes
+            .Where(pl => postIds.Contains(pl.PostId) && pl.UserId == userId)
+            .Select(pl => pl.PostId)
+            .ToHashSetAsync();
+    }
+    
+    /// <summary>
     /// 增加帖子浏览量
     /// </summary>
     public async Task IncrementPostViewCountAsync(Guid postId)

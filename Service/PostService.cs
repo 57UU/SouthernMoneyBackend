@@ -98,23 +98,16 @@ public class PostService
         var posts = await postRepository.GetAllPostsAsync(page, pageSize);
         var totalCount = await postRepository.GetPostCountAsync();
         
-        var postIds = posts.Select(p => p.Id).ToList();
-        var likedPosts = new List<Database.PostLike>();
+        await Task.WhenAll(posts.Select(post => postRepository.IncrementPostViewCountAsync(post.Id)));
         
-        foreach (var postId in postIds)
-        {
-            if (await postRepository.IsPostLikedByUserAsync(postId, currentUserId))
-            {
-                likedPosts.Add(new Database.PostLike { PostId = postId, UserId = currentUserId });
-            }
-        }
-        
-        var likedIds = likedPosts.Select(pl => pl.PostId).ToHashSet();
+        // 批量获取用户点赞的帖子ID，避免N+1查询问题
+        var postIds = posts.Select(p => p.Id);
+        var likedPostIds = await postRepository.GetUserLikedPostsAsync(postIds, currentUserId);
         
         return new PagedPostsResult
         {
             Posts = posts,
-            LikedPostIds = likedIds,
+            LikedPostIds = likedPostIds,
             TotalCount = totalCount
         };
     }
@@ -127,23 +120,14 @@ public class PostService
         var posts = await postRepository.GetPostsByUserIdAsync(userId, page, pageSize);
         var totalCount = await postRepository.GetUserPostCountAsync(userId);
         
-        var postIds = posts.Select(p => p.Id).ToList();
-        var likedPosts = new List<Database.PostLike>();
-        
-        foreach (var postId in postIds)
-        {
-            if (await postRepository.IsPostLikedByUserAsync(postId, userId))
-            {
-                likedPosts.Add(new Database.PostLike { PostId = postId, UserId = userId });
-            }
-        }
-        
-        var likedIds = likedPosts.Select(pl => pl.PostId).ToHashSet();
+        // 批量获取用户点赞的帖子ID，避免N+1查询问题
+        var postIds = posts.Select(p => p.Id);
+        var likedPostIds = await postRepository.GetUserLikedPostsAsync(postIds, userId);
         
         return new PagedPostsResult
         {
             Posts = posts,
-            LikedPostIds = likedIds,
+            LikedPostIds = likedPostIds,
             TotalCount = totalCount
         };
     }
@@ -236,23 +220,14 @@ public class PostService
         
         var (posts, totalCount) = await postRepository.SearchPostsAsync(query, page, pageSize);
         
-        var postIds = posts.Select(p => p.Id).ToList();
-        var likedPosts = new List<Database.PostLike>();
-        
-        foreach (var postId in postIds)
-        {
-            if (await postRepository.IsPostLikedByUserAsync(postId, currentUserId))
-            {
-                likedPosts.Add(new Database.PostLike { PostId = postId, UserId = currentUserId });
-            }
-        }
-        
-        var likedIds = likedPosts.Select(pl => pl.PostId).ToHashSet();
+        // 批量获取用户点赞的帖子ID，避免N+1查询问题
+        var postIds = posts.Select(p => p.Id);
+        var likedPostIds = await postRepository.GetUserLikedPostsAsync(postIds, currentUserId);
         
         return new PagedPostsResult
         {
             Posts = posts,
-            LikedPostIds = likedIds,
+            LikedPostIds = likedPostIds,
             TotalCount = totalCount
         };
     }
