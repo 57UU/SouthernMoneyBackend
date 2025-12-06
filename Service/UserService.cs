@@ -90,10 +90,7 @@ public class UserService
         {
             throw new Exception("Password not match");
         }
-        if (user.IsBlocked)
-        {
-            throw new Exception("User is blocked");
-        }
+        VerifyUser(user);
 
         // 生成JWT令牌
         var token = JwtUtils.GenerateToken(user.Id, user.IsAdmin);
@@ -142,6 +139,12 @@ public class UserService
         }
         return await _userRepository.GetUserByIdAsync(userId.Value);
     }
+    public void VerifyUser(Database.User user){
+        if (user.IsBlocked)
+        {
+            throw new Exception($"User is blocked: {user.BlockReason}");
+        }
+    }
 
     /// <summary>
     /// 使用Refresh Token刷新JWT令牌
@@ -163,10 +166,7 @@ public class UserService
         {
             return null;
         }
-        if (user.IsBlocked)
-        {
-            throw new Exception("User is blocked");
-        }
+        VerifyUser(user);
 
         // 生成新的access token和refresh token
         var newToken = JwtUtils.GenerateToken(user.Id, user.IsAdmin);
