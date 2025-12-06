@@ -394,7 +394,7 @@ public class PostRepository
     /// <summary>
     /// 获取被举报的帖子（分页）
     /// </summary>
-    public async Task<(List<Post> Posts, int TotalCount)> GetReportedPostsAsync(int page = 1, int pageSize = 10)
+    public async Task<(List<Post> Posts, int TotalCount)> GetReportedPostsAsync(int page = 1, int pageSize = 10, bool isBlocked = false)
     {
         var postsQuery = _context.Posts
             .Include(p => p.User)
@@ -402,7 +402,19 @@ public class PostRepository
             .ThenInclude(pi => pi.Image)
             .Include(p => p.PostTags)
             .Include(p => p.PostLikes)
-            .Where(p => p.ReportCount > 0)
+            .Where(p => p.ReportCount > 0);
+        
+        // 根据 isBlocked 参数过滤
+        if (isBlocked)
+        {
+            postsQuery = postsQuery.Where(p => p.IsBlocked);
+        }
+        else
+        {
+            postsQuery = postsQuery.Where(p => !p.IsBlocked);
+        }
+        
+        postsQuery = postsQuery
             .OrderByDescending(p => p.ReportCount)
             .ThenByDescending(p => p.CreateTime);
         

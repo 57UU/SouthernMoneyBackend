@@ -99,12 +99,12 @@ public class AdminService
     /// <summary>
     /// 获取被举报的帖子
     /// </summary>
-    public async Task<(List<Database.Post> Posts, int TotalCount)> GetReportedPostsAsync(int page = 1, int pageSize = 10)
+    public async Task<(List<Database.Post> Posts, int TotalCount)> GetReportedPostsAsync(int page = 1, int pageSize = 10, bool isBlocked = false)
     {
         if (page < 1) page = 1;
         if (pageSize < 1 || pageSize > 100) pageSize = 10;
         
-        return await postRepository.GetReportedPostsAsync(page, pageSize);
+        return await postRepository.GetReportedPostsAsync(page, pageSize, isBlocked);
     }
     
     /// <summary>

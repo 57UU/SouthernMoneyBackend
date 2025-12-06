@@ -202,7 +202,8 @@ public class AdminController : ControllerBase
     [HttpGet("reportedPosts")]
     public async Task<ApiResponse<PaginatedResponse<PostDto>>> GetReportedPostsAsync(
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10)
+        [FromQuery] int pageSize = 10,
+        [FromQuery] bool isBlocked = false)
     {
         try
         {
@@ -211,7 +212,7 @@ public class AdminController : ControllerBase
             if (pageSize <= 0 || pageSize > 100) pageSize = 10;
 
             // 获取被举报的帖子
-            var (posts, totalCount) = await _adminService.GetReportedPostsAsync(page, pageSize);
+            var (posts, totalCount) = await _adminService.GetReportedPostsAsync(page, pageSize, isBlocked);
 
             // 转换为DTO
             var postDtos = posts.Select(p => PostDto.FromPost(p, false)).ToList();
