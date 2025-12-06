@@ -90,6 +90,10 @@ public class UserService
         {
             throw new Exception("Password not match");
         }
+        if (user.IsBlocked)
+        {
+            throw new Exception("User is blocked");
+        }
 
         // 生成JWT令牌
         var token = JwtUtils.GenerateToken(user.Id, user.IsAdmin);
@@ -158,6 +162,10 @@ public class UserService
         if (user == null)
         {
             return null;
+        }
+        if (user.IsBlocked)
+        {
+            throw new Exception("User is blocked");
         }
 
         // 生成新的access token和refresh token
