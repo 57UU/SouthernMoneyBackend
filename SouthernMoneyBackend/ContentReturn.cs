@@ -134,22 +134,14 @@ public class UserProfileDto
     public bool IsBlocked { get; set; }
     public DateTime CreateTime { get; set; }
     public UserAssetDto Asset { get; set; }
+    public bool IsAdmin { get; set; }
     
     /// <summary>
     /// 从User实体和UserAsset实体创建UserProfileDto的工厂构造函数
     /// </summary>
     public static UserProfileDto FromUser(Database.User user, Database.UserAsset asset)
     {
-        return new UserProfileDto
-        {
-            Id = user.Id,
-            Name = user.Name,
-            Email = user.Email ?? string.Empty,
-            Avatar = user.Avatar,
-            IsBlocked = user.IsBlocked,
-            CreateTime = user.CreateTime,
-            Asset = UserAssetDto.FromUserAsset(asset)
-        };
+        return FromUser(user, UserAssetDto.FromUserAsset(asset));
     }
     
     /// <summary>
@@ -165,7 +157,8 @@ public class UserProfileDto
             Avatar = user.Avatar,
             IsBlocked = user.IsBlocked,
             CreateTime = user.CreateTime,
-            Asset = assetDto
+            Asset = assetDto,
+            IsAdmin=user.IsAdmin
         };
     }
 }
