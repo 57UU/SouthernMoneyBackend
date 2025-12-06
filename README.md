@@ -336,6 +336,7 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
     "Avatar": "图片ID",
     "IsBlocked": false, //bool
     "CreateTime": "2023-01-01T00:00:00Z", //datetime
+    "IsAdmin": false, //bool
     "Asset": {
         "Total":10000,
         "TodayEarn":100,
@@ -744,6 +745,71 @@ dotnet run --project SouthernMoneyBackend/SouthernMoneyBackend.csproj
             "PurchaseTime": "2023-01-01T00:00:00Z" //datetime
         },
     ]
+}
+```
+
+## notification
+### 获取通知
+- **路径**: GET `/notification/my?page={page}&pageSize={pageSize}`
+- **参数**:
+  - `page`: 当前页码，默认1
+  - `pageSize`: 每页数量，默认10
+- **成功响应**
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "total": 100,
+    "page": 1,
+    "pageSize": 10,
+    "list": [
+      {
+        "Id": "guid",
+        "Content": "string",
+        "Type": "system", // 通知类型：system/activity/message
+        "CreateTime": "2023-01-01T00:00:00Z",
+        "IsRead": false
+      }
+    ]
+  }
+}
+```
+
+### 获取未读通知数量
+- **路径**: GET `/notification/unread-count`
+- **成功响应**
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": 5
+}
+```
+
+### 标记已读
+- **路径**: POST `/notification/read`
+- **参数**
+```json
+{
+  "NotificationIds": ["通知ID1", "通知ID2"] // 支持单个或多个通知ID
+}
+```
+- **成功响应**
+```json
+{
+  "code": 200,
+  "message": "success"
+}
+```
+
+### 标记全部已读
+- **路径**: POST `/notification/read-all`
+- **成功响应**
+```json
+{
+  "code": 200,
+  "message": "success"
 }
 ```
 

@@ -18,6 +18,7 @@ public class AppDbContext : DbContext
     public DbSet<ProductCategory> ProductCategories { get; set; }
     public DbSet<UserFavoriteCategory> UserFavoriteCategories { get; set; }
     public DbSet<UserAsset> UserAssets { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -189,6 +190,21 @@ public class AppDbContext : DbContext
                   .WithOne()
                   .HasForeignKey<UserAsset>(e => e.UserId)
                   .IsRequired();
+        });
+        
+        // 配置Notification实体
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            entity.HasOne(e => e.User)
+                  .WithMany() // 一个用户可以有多个通知
+                  .HasForeignKey(e => e.UserId)
+                  .IsRequired();
+            
+            entity.Property(e => e.Content).IsRequired();
+            entity.Property(e => e.Type).IsRequired();
+            entity.Property(e => e.IsRead).HasDefaultValue(false);
         });
     }
 

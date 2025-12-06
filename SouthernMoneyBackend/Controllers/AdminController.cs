@@ -69,7 +69,7 @@ public class AdminController : ControllerBase
     }
 
     /// <summary>
-    /// 设置用户为管理员
+    /// 设置/取消用户为管理员
     /// </summary>
     [HttpPost("setAdmin")]
     public async Task<ApiResponse<object>> SetAdminAsync([FromBody] SetAdminRequest req)
@@ -83,11 +83,15 @@ public class AdminController : ControllerBase
         {
             return ApiResponse<object>.Fail("Invalid userId");
         }
+        if(req.UserId==HttpContext.GetUserId())
+        {
+            return ApiResponse<object>.Fail("Cannot set self as admin");
+        }
 
         try
         {
             await _adminService.SetAdmin(req.UserId);
-            return ApiResponse<object>.Ok(new { success = true, userId = req.UserId });
+            return ApiResponse.Ok();
         }
         catch (Exception ex)
         {
@@ -112,40 +116,11 @@ public class AdminController : ControllerBase
             if (page <= 0) page = 1;
             if (pageSize <= 0 || pageSize > 100) pageSize = 10;
 
-            // 获取用户列表
-            var (users, totalCount) = await _userRepository.GetUsersPagedAsync(page, pageSize);
-
-            // 应用筛选条件
-            var filteredUsers = users.AsEnumerable();
-
-            if (isBlocked.HasValue)
-            {
-                filteredUsers = filteredUsers.Where(u => u.IsBlocked == isBlocked.Value);
-            }
-
-            if (isAdmin.HasValue)
-            {
-                filteredUsers = filteredUsers.Where(u => u.IsAdmin == isAdmin.Value);
-            }
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                filteredUsers = filteredUsers.Where(u => 
-                    u.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                    (u.Email != null && u.Email.Contains(search, StringComparison.OrdinalIgnoreCase)));
-            }
-
-            // 重新计算总数
-            totalCount = filteredUsers.Count();
-
-            // 应用分页
-            var pagedUsers = filteredUsers
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
+            // 直接从数据库获取筛选和分页后的用户列表
+            var (users, totalCount) = await _userRepository.GetUsersPagedAsync(page, pageSize, isBlocked, isAdmin, search);
 
             // 转换为DTO
-            var userDtos = UserDto.FromUserList(pagedUsers);
+            var userDtos = UserDto.FromUserList(users);
 
             var paginatedResponse = PaginatedResponse<UserDto>.Create(
                 userDtos, 

@@ -163,10 +163,11 @@ public class UserRepository
     /// <summary>
     /// 分页获取用户列表
     /// </summary>
-    public async Task<(List<User> Users, int TotalCount)> GetUsersPagedAsync(int page, int pageSize, bool? isBlocked = null, bool? isAdmin = null)
+    public async Task<(List<User> Users, int TotalCount)> GetUsersPagedAsync(int page, int pageSize, bool? isBlocked = null, bool? isAdmin = null, string? search = null)
     {
         var query = _context.Users.AsQueryable();
         
+        // 应用筛选条件
         if (isBlocked.HasValue)
         {
             query = query.Where(u => u.IsBlocked == isBlocked.Value);
@@ -175,6 +176,13 @@ public class UserRepository
         if (isAdmin.HasValue)
         {
             query = query.Where(u => u.IsAdmin == isAdmin.Value);
+        }
+        
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(u => 
+                u.Name.Contains(search) ||
+                (u.Email != null && u.Email.Contains(search)));
         }
         
         var totalCount = await query.CountAsync();

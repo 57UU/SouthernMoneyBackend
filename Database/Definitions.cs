@@ -185,4 +185,21 @@ public class UserAsset
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
 
+public class Notification
+{
+    public Guid Id { get; set; }
+    // 接收用户ID外键
+    public long UserId { get; set; }
+    // 用户导航属性
+    public User User { get; set; }
+    // 通知内容
+    public string Content { get; set; }
+    // 通知类型：system/activity/message
+    public string Type { get; set; }
+    // 是否已读
+    public bool IsRead { get; set; } = false;
+    // 创建时间
+    public DateTime CreateTime { get; set; } = DateTime.UtcNow;
+}
+
 #pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。

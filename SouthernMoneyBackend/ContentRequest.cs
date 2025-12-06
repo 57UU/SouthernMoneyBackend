@@ -130,6 +130,7 @@ public class HandleUserRequest
 public class SetAdminRequest
 {
     public long UserId { get; set; }
+    public bool IsAdmin { get; set; }
 }
 
 public class HandleReportRequest
