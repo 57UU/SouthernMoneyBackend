@@ -241,8 +241,9 @@ public class PostRepository
         {
             PostId = postId,
             AdminUserId = adminUserId,
-            BlockReason = isBlocked ? handleReason : $"处理举报: {handleReason} (未封禁)",
-            BlockedAt = DateTime.UtcNow
+            IsBlock = isBlocked,
+            Reason = handleReason,
+            ActionTime = DateTime.UtcNow
         };
         
         _context.PostBlocks.Add(postBlock);

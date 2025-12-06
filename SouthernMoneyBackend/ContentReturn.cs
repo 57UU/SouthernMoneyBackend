@@ -43,7 +43,7 @@ public class PostDto
             LikeCount = post.LikeCount,
             IsBlocked = post.IsBlocked,
             IsLiked = isLiked,
-            PostBlocks = PostBlockDto.FromPostBlockList(post.PostBlocks?.OrderByDescending(pb => pb.BlockedAt)),
+            PostBlocks = PostBlockDto.FromPostBlockList(post.PostBlocks?.OrderByDescending(pb => pb.ActionTime)),
             Tags = post.PostTags?.Select(t => t.Tag).ToList() ?? new List<string>(),
             ImageIds = post.PostImages?.Select(pi => pi.ImageId).ToList() ?? new List<Guid>(),
             Uploader = post.User == null ? null : new PostUploaderDto
@@ -64,7 +64,8 @@ public class PostDto
     }
 }
 public class PostBlockDto{
-    public DateTime BlockedAt { get; set; }
+    public DateTime ActionTime { get; set; }
+    public bool IsBlock { get; set; }
     public string Reason { get; set; }
     public PostUploaderDto Operator { get; set; }
     
@@ -75,8 +76,9 @@ public class PostBlockDto{
     {
         return new PostBlockDto
         {
-            BlockedAt = postBlock.BlockedAt,
-            Reason = postBlock.BlockReason,
+            ActionTime = postBlock.ActionTime,
+            IsBlock = postBlock.IsBlock,
+            Reason = postBlock.Reason,
             Operator = PostUploaderDto.FromUser(postBlock.AdminUser)
         };
     }

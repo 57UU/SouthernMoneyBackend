@@ -215,18 +215,18 @@ public class AppDbContext : DbContext
             
             // 配置与Post的关系
             entity.HasOne(e => e.Post)
-                  .WithMany(p => p.PostBlocks) // 一个帖子可以有多个封禁记录
+                  .WithMany(p => p.PostBlocks) // 一个帖子可以有多个操作记录
                   .HasForeignKey(e => e.PostId)
                   .IsRequired();
             
             // 配置与AdminUser的关系
             entity.HasOne(e => e.AdminUser)
-                  .WithMany() // 一个管理员可以封禁多个帖子
+                  .WithMany() // 一个管理员可以操作多个帖子
                   .HasForeignKey(e => e.AdminUserId)
                   .IsRequired();
             
-            entity.Property(e => e.BlockReason).IsRequired();
-            entity.Property(e => e.BlockedAt).IsRequired();
+            entity.Property(e => e.Reason).IsRequired();
+            entity.Property(e => e.ActionTime).IsRequired();
         });
     }
 

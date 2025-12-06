@@ -205,7 +205,6 @@ public class Notification
 
 public class PostBlock
 {
-
     [JsonIgnore]
     public Guid Id { get; set; }
     // 帖子ID外键
@@ -214,11 +213,13 @@ public class PostBlock
     // 帖子导航属性
     [JsonIgnore]
     public Post Post { get; set; }
-    // 封禁原因
-    public string BlockReason { get; set; }
-    // 封禁时间
-    public DateTime BlockedAt { get; set; } = DateTime.UtcNow;
-    // 执行封禁的管理员ID
+    // 操作类型：true表示封禁，false表示解封
+    public bool IsBlock { get; set; }
+    // 操作原因
+    public string Reason { get; set; }
+    // 操作时间
+    public DateTime ActionTime { get; set; } = DateTime.UtcNow;
+    // 执行操作的管理员ID
     [JsonIgnore]
     public long AdminUserId { get; set; }
     // 管理员导航属性
