@@ -116,17 +116,47 @@ public class PostService
         };
     }
     
+    /// <summary>
+    /// 获取用户所有帖子（包括被封禁的）
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="page"></param>
+    /// <param name="pageSize"></param>
+    /// <returns></returns>
     public async Task<PagedPostsResult> GetMyPostsAsync(long userId, int page, int pageSize)
     {
         if (page <= 0) page = 1;
         if (pageSize <= 0) pageSize = 10;
         
-        var posts = await postRepository.GetPostsByUserIdAsync(userId, page, pageSize);
-        var totalCount = await postRepository.GetUserPostCountAsync(userId);
+        var posts = await postRepository.GetPostsByUserIdAsync(userId, page, pageSize, includeBlocked: true);
+        var totalCount = await postRepository.GetUserPostCountAsync(userId, includeBlocked: true);
         
         // 批量获取用户点赞的帖子ID，避免N+1查询问题
         var postIds = posts.Select(p => p.Id);
         var likedPostIds = await postRepository.GetUserLikedPostsAsync(postIds, userId);
+        
+        return new PagedPostsResult
+        {
+            Posts = posts,
+            LikedPostIds = likedPostIds,
+            TotalCount = totalCount
+        };
+    }
+    
+    public async Task<PagedPostsResult> GetUserPostsAsync(long userId, int page, int pageSize, long currentUserId)
+    {
+        if (page <= 0) page = 1;
+        if (pageSize <= 0) pageSize = 10;
+        
+        // 如果查看的是自己的帖子，则显示所有帖子（包括被封禁的）
+        bool includeBlocked = userId == currentUserId;
+        
+        var posts = await postRepository.GetPostsByUserIdAsync(userId, page, pageSize, includeBlocked);
+        var totalCount = await postRepository.GetUserPostCountAsync(userId, includeBlocked);
+        
+        // 批量获取用户点赞的帖子ID，避免N+1查询问题
+        var postIds = posts.Select(p => p.Id);
+        var likedPostIds = await postRepository.GetUserLikedPostsAsync(postIds, currentUserId);
         
         return new PagedPostsResult
         {

@@ -67,9 +67,25 @@ public class PostController : ControllerBase
     public async Task<ApiResponse<PaginatedResponse<PostDto>>> GetMyPosts([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         var userId = HttpContext.GetUserId();
+        //show blocked posts
         var result = await postService.GetMyPostsAsync(userId, page, pageSize);
         var dtos = result.Posts.Select(p => PostDto.FromPost(p, result.LikedPostIds.Contains(p.Id))).ToList();
         return PaginatedResponse<PostDto>.CreateApiResponse(dtos, page, pageSize, result.TotalCount);
+    }
+    [HttpGet("user")]
+    public async Task<ApiResponse<PaginatedResponse<PostDto>>> GetPostsByUserId([FromQuery(Name = "userId")] long userId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        var currentUserId = HttpContext.GetUserId();
+        try
+        {
+            var result = await postService.GetUserPostsAsync(userId, page, pageSize, currentUserId);
+            var dtos = result.Posts.Select(p => PostDto.FromPost(p, result.LikedPostIds.Contains(p.Id))).ToList();
+            return PaginatedResponse<PostDto>.CreateApiResponse(dtos, page, pageSize, result.TotalCount);
+        }
+        catch (Exception e)
+        {
+            return ApiResponse<PaginatedResponse<PostDto>>.Fail(e.Message, "GET_USER_POSTS_FAILED");
+        }
     }
     
     [HttpPost("like")]
@@ -180,5 +196,8 @@ public class PostController : ControllerBase
         }
     }
 }
+
+
+
 
 

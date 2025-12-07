@@ -85,15 +85,22 @@ public class PostRepository
     /// <summary>
     /// 获取用户的帖子
     /// </summary>
-    public async Task<List<Post>> GetPostsByUserIdAsync(long userId, int page = 1, int pageSize = 10)
+    public async Task<List<Post>> GetPostsByUserIdAsync(long userId, int page = 1, int pageSize = 10, bool includeBlocked = false)
     {
-        return await _context.Posts
+        var query = _context.Posts
             .Include(p => p.User)
             .Include(p => p.PostImages)
             .ThenInclude(pi => pi.Image)
             .Include(p => p.PostTags)
             .Include(p => p.PostLikes)
-            .Where(p => p.UploaderUserId == userId && !p.IsBlocked)
+            .Where(p => p.UploaderUserId == userId);
+            
+        if (!includeBlocked)
+        {
+            query = query.Where(p => !p.IsBlocked);
+        }
+        
+        return await query
             .OrderByDescending(p => p.CreateTime)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -320,11 +327,16 @@ public class PostRepository
     /// <summary>
     /// 获取用户帖子数量
     /// </summary>
-    public async Task<int> GetUserPostCountAsync(long userId)
+    public async Task<int> GetUserPostCountAsync(long userId, bool includeBlocked = false)
     {
-        return await _context.Posts
-            .Where(p => p.UploaderUserId == userId && !p.IsBlocked)
-            .CountAsync();
+        var query = _context.Posts.Where(p => p.UploaderUserId == userId);
+        
+        if (!includeBlocked)
+        {
+            query = query.Where(p => !p.IsBlocked);
+        }
+        
+        return await query.CountAsync();
     }
     
     /// <summary>
