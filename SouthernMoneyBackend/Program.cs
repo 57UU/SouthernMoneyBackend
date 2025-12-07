@@ -115,7 +115,7 @@ using (var scope = app.Services.CreateScope())
     var userService = scope.ServiceProvider.GetService<UserService>()!;
     long userId = await userService.RegisterUser(User.CreateUser("test", "123", 114514), existIsOk: true);
     var adminService = scope.ServiceProvider.GetService<AdminService>()!;
-    await adminService.SetAdmin(userId, alreadyAdminOk: true);
+    await adminService.SetAdmin(userId, true, alreadyOk: true);
 }
 
 

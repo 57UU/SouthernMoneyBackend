@@ -29,11 +29,6 @@ public class AdminService
             return;
         }
 
-        if (user.IsAdmin)
-        {
-            throw new Exception("Cannot ban administrator");
-        }
-
         if (user.IsBlocked)
         {
             throw new Exception("User is already banned");
@@ -82,17 +77,17 @@ public class AdminService
             "system"
         );
     }
-    public async Task SetAdmin(long userId,bool alreadyAdminOk = false){
+    public async Task SetAdmin(long userId,bool isAdmin,bool alreadyOk = false){
         var user = await userRepository.GetUserByIdAsync(userId);
         if (user == null)
         {
             return;
         }
-        if (user.IsAdmin && !alreadyAdminOk)
+        if (user.IsAdmin == isAdmin && !alreadyOk)
         {
-            throw new Exception("User is already admin");
+            throw new Exception($"User is already {(isAdmin ? "admin" : "not admin")}");
         }
-        user.IsAdmin = true;
+        user.IsAdmin = isAdmin;
         await userRepository.UpdateUserAsync(user);
     }
     

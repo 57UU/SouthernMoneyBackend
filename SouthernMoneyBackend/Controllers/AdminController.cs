@@ -90,7 +90,7 @@ public class AdminController : ControllerBase
 
         try
         {
-            await _adminService.SetAdmin(req.UserId);
+            await _adminService.SetAdmin(req.UserId, req.IsAdmin);
             return ApiResponse.Ok();
         }
         catch (Exception ex)
