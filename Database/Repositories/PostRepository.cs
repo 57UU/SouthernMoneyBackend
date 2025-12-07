@@ -358,7 +358,7 @@ public class PostRepository
     /// <summary>
     /// 搜索帖子
     /// </summary>
-    public async Task<(List<Post> Posts, int TotalCount)> SearchPostsAsync(string query, int page = 1, int pageSize = 10)
+    public async Task<(List<Post> Posts, int TotalCount)> SearchPostsAsync(string query, string? tag = null, int page = 1, int pageSize = 10)
     {
         var normalizedQuery = query.Trim().ToLower();
         
@@ -371,8 +371,16 @@ public class PostRepository
             .Where(p => !p.IsBlocked && 
                        (p.Title.ToLower().Contains(normalizedQuery) || 
                         p.Content.ToLower().Contains(normalizedQuery) ||
-                        p.PostTags.Any(pt => pt.Tag.ToLower().Contains(normalizedQuery))))
-            .OrderByDescending(p => p.CreateTime);
+                        p.PostTags.Any(pt => pt.Tag.ToLower().Contains(normalizedQuery))));
+        
+        // 如果提供了tag参数，进一步过滤结果
+        if (!string.IsNullOrWhiteSpace(tag))
+        {
+            var normalizedTag = tag.Trim().ToLower();
+            postsQuery = postsQuery.Where(p => p.PostTags.Any(pt => pt.Tag.ToLower() == normalizedTag));
+        }
+        
+        postsQuery = postsQuery.OrderByDescending(p => p.CreateTime);
         
         var totalCount = await postsQuery.CountAsync();
         

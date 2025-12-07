@@ -275,7 +275,7 @@ public class PostService
         return true;
     }
     
-    public async Task<PagedPostsResult> SearchPostsAsync(string query, int page, int pageSize, long currentUserId)
+    public async Task<PagedPostsResult> SearchPostsAsync(string query, string? tag = null, int page = 1, int pageSize = 10, long currentUserId = 0)
     {
         if (string.IsNullOrWhiteSpace(query))
         {
@@ -285,7 +285,7 @@ public class PostService
         if (page <= 0) page = 1;
         if (pageSize <= 0) pageSize = 10;
         
-        var (posts, totalCount) = await postRepository.SearchPostsAsync(query, page, pageSize);
+        var (posts, totalCount) = await postRepository.SearchPostsAsync(query, tag, page, pageSize);
         
         // 批量获取用户点赞的帖子ID，避免N+1查询问题
         var postIds = posts.Select(p => p.Id);

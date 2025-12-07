@@ -158,14 +158,15 @@ public class PostController : ControllerBase
     // following is written by hr
     [HttpGet("search")]
     public async Task<ApiResponse<PaginatedResponse<PostDto>>> SearchPosts(
-        [FromQuery(Name = "query")] string query,
+        [FromQuery(Name = "query")] string? query=null,
+        [FromQuery(Name = "tag")] string? tag = null,
         [FromQuery(Name = "page")] int page = 1,
         [FromQuery(Name = "pageSize")] int pageSize = 10)
     {
         var userId = HttpContext.GetUserId();
         try
         {
-            var result = await postService.SearchPostsAsync(query, page, pageSize, userId);
+            var result = await postService.SearchPostsAsync(query, tag, page, pageSize, userId);
             var dtos = result.Posts.Select(p => PostDto.FromPost(p, result.LikedPostIds.Contains(p.Id))).ToList();
             return PaginatedResponse<PostDto>.CreateApiResponse(dtos, page, pageSize, result.TotalCount);
         }
@@ -179,3 +180,4 @@ public class PostController : ControllerBase
         }
     }
 }
+
