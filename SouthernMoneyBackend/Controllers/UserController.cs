@@ -137,9 +137,10 @@ public class UserController : ControllerBase
             {
                 return ApiResponse<object>.Fail("Avatar image size must be less than 2MB");
             }
-            byte[] file = new byte[request.File.Length];
             var stream = request.File.OpenReadStream();
-            await stream.ReadAsync(file);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            byte[] file = memoryStream.ToArray();
 
             // 上传头像
             var avatarId = await _imageBedService.UploadImageAsync(file, userId, "avatar");

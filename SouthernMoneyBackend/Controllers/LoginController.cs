@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Database;
 using Service;
 using SouthernMoneyBackend.Utils;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SouthernMoneyBackend.Controllers;
 
@@ -15,6 +16,7 @@ public class LoginController : ControllerBase
         this.userService = userService;
     }
     [HttpPost("register", Name = "RegisterUser")]
+    [AllowAnonymous]
     public async Task<ApiResponse> Register([FromBody] RegisterRequest request)
     {
         var user = Database.User.CreateUser(request.Name, request.Password);
@@ -29,6 +31,7 @@ public class LoginController : ControllerBase
         }
     }
     [HttpPost("loginByPassword", Name = "LoginByPassword")]
+    [AllowAnonymous]
     public async Task<ApiResponse<object>> LoginByPassword([FromBody] LoginByPasswordRequest request)
     {
         try
@@ -43,6 +46,7 @@ public class LoginController : ControllerBase
     }
     
     [HttpPost("refreshToken", Name = "RefreshToken")]
+    [AllowAnonymous]
     public async Task<ApiResponse<object>> RefreshToken([FromBody] RefreshTokenRequest request)
     {
         try

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Database;
 using Service;
 using SouthernMoneyBackend.Utils;
@@ -35,6 +36,7 @@ public class PostController : ControllerBase
     }
     
     [HttpGet("get")]
+    [AllowAnonymous]
     public async Task<ApiResponse<PostDto>> GetPost([FromQuery(Name = "id")] Guid postId)
     {
         var userId = HttpContext.GetUserId();
@@ -55,6 +57,7 @@ public class PostController : ControllerBase
     }
     
     [HttpGet("page")]
+    [AllowAnonymous]
     public async Task<ApiResponse<PaginatedResponse<PostDto>>> GetPosts([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         var userId = HttpContext.GetUserId();
@@ -73,6 +76,7 @@ public class PostController : ControllerBase
         return PaginatedResponse<PostDto>.CreateApiResponse(dtos, page, pageSize, result.TotalCount);
     }
     [HttpGet("user")]
+    [AllowAnonymous]
     public async Task<ApiResponse<PaginatedResponse<PostDto>>> GetPostsByUserId([FromQuery(Name = "userId")] long userId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         var currentUserId = HttpContext.GetUserId();
@@ -173,6 +177,7 @@ public class PostController : ControllerBase
     
     // following is written by hr
     [HttpGet("search")]
+    [AllowAnonymous]
     public async Task<ApiResponse<PaginatedResponse<PostDto>>> SearchPosts(
         [FromQuery(Name = "query")] string? query = null,
         [FromQuery(Name = "tag")] string? tag = null,

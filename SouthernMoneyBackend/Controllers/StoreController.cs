@@ -1,5 +1,6 @@
 //following is written by hr
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using SouthernMoneyBackend.Utils;
 using SouthernMoneyBackend.Middleware;
 using Service;
@@ -76,6 +77,7 @@ public class StoreController : ControllerBase
 
     // GET /store/products
     [HttpGet("products")]
+    [AllowAnonymous]
     public async Task<ApiResponse<PaginatedResponse<ProductDto>>> GetProducts(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
@@ -140,6 +142,7 @@ public class StoreController : ControllerBase
 
     // GET /store/products/{id}
     [HttpGet("products/{id}")]
+    [AllowAnonymous]
     public async Task<ApiResponse<ProductDto>> GetProduct(Guid id)
     {
         try
@@ -163,6 +166,7 @@ public class StoreController : ControllerBase
     
     // GET /store/detail?id={productId} - for compatibility with README
     [HttpGet("detail")]
+    [AllowAnonymous]
     public async Task<ApiResponse<ProductDto>> GetProductDetail([FromQuery(Name = "id")] Guid productId)
     {
         // 复用现有逻辑
@@ -171,6 +175,7 @@ public class StoreController : ControllerBase
 
     // GET /store/categories
     [HttpGet("categories")]
+    [AllowAnonymous]
     public async Task<ApiResponse<List<ProductCategoryDto>>> GetCategories()
     {
         try
@@ -195,6 +200,7 @@ public class StoreController : ControllerBase
 
     // GET /store/categories/{id}
     [HttpGet("categories/{id}")]
+    [AllowAnonymous]
     public async Task<ApiResponse<ProductCategoryDto>> GetCategory(Guid id)
     {
         try
@@ -223,6 +229,7 @@ public class StoreController : ControllerBase
     
     // GET /store/category/search?name={name} - for compatibility with README
     [HttpGet("category/search")]
+    [AllowAnonymous]
     public async Task<ApiResponse<CategorySearchResultDto>> SearchCategories([FromQuery(Name = "name")] string name)
     {
         try
@@ -282,6 +289,7 @@ public class StoreController : ControllerBase
 
     // GET /store/categories/{id}/products
     [HttpGet("categories/{id}/products")]
+    [AllowAnonymous]
     public async Task<ApiResponse<PaginatedResponse<ProductDto>>> GetProductsByCategory(
         Guid id,
         [FromQuery] int page = 1,
@@ -317,6 +325,7 @@ public class StoreController : ControllerBase
 
     // GET /store/search
     [HttpGet("search")]
+    [AllowAnonymous]
     public async Task<ApiResponse<PaginatedResponse<ProductDto>>> SearchProducts(
         [FromQuery] string q,
         [FromQuery] int page = 1,
@@ -354,6 +363,7 @@ public class StoreController : ControllerBase
     
     // GET /store/avgPrice
     [HttpGet("avgPrice")]
+    [AllowAnonymous]
     public async Task<ApiResponse<object>> GetAveragePriceByCategory([FromQuery] Guid categoryId)
     {
         try
