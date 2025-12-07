@@ -275,11 +275,13 @@ public class PostService
         return true;
     }
     
-    public async Task<PagedPostsResult> SearchPostsAsync(string query, string? tag = null, int page = 1, int pageSize = 10, long currentUserId = 0)
+    public async Task<PagedPostsResult> SearchPostsAsync(string? query, string? tag = null, int page = 1, int pageSize = 10, long currentUserId = 0)
     {
-        if (string.IsNullOrWhiteSpace(query))
+        // 如果query为空，则不进行搜索过滤，只根据tag过滤或返回所有帖子
+        if (string.IsNullOrWhiteSpace(query) && string.IsNullOrWhiteSpace(tag))
         {
-            throw new ArgumentException("Search query cannot be empty");
+            // 如果query和tag都为空，返回所有帖子
+            return await GetPostsPageAsync(page, pageSize, currentUserId);
         }
         
         if (page <= 0) page = 1;

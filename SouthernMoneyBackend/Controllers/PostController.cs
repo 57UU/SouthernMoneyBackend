@@ -158,7 +158,7 @@ public class PostController : ControllerBase
     // following is written by hr
     [HttpGet("search")]
     public async Task<ApiResponse<PaginatedResponse<PostDto>>> SearchPosts(
-        [FromQuery(Name = "query")] string? query=null,
+        [FromQuery(Name = "query")] string? query = null,
         [FromQuery(Name = "tag")] string? tag = null,
         [FromQuery(Name = "page")] int page = 1,
         [FromQuery(Name = "pageSize")] int pageSize = 10)
@@ -180,4 +180,5 @@ public class PostController : ControllerBase
         }
     }
 }
+
 
