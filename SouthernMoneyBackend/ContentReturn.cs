@@ -22,6 +22,7 @@ public class PostDto
     public int LikeCount { get; set; }
     public bool IsBlocked { get; set; }
     public bool IsLiked { get; set; }
+    public bool IsFavorited { get; set; }
     public List<PostBlockDto>? PostBlocks { get; set; }
     public List<string> Tags { get; set; } = new();
     public List<Guid> ImageIds { get; set; } = new();
@@ -30,7 +31,7 @@ public class PostDto
     /// <summary>
     /// 从Post实体创建PostDto的工厂构造函数
     /// </summary>
-    public static PostDto FromPost(Database.Post post, bool isLiked)
+    public static PostDto FromPost(Database.Post post, bool isLiked, bool isFavorited = false)
     {
         return new PostDto
         {
@@ -43,6 +44,7 @@ public class PostDto
             LikeCount = post.LikeCount,
             IsBlocked = post.IsBlocked,
             IsLiked = isLiked,
+            IsFavorited = isFavorited,
             PostBlocks = PostBlockDto.FromPostBlockList(post.PostBlocks?.OrderByDescending(pb => pb.ActionTime)),
             Tags = post.PostTags?.Select(t => t.Tag).ToList() ?? new List<string>(),
             ImageIds = post.PostImages?.Select(pi => pi.ImageId).ToList() ?? new List<Guid>(),
@@ -58,9 +60,10 @@ public class PostDto
     /// <summary>
     /// 从Post实体列表创建PostDto列表
     /// </summary>
-    public static List<PostDto> FromPostList(List<Database.Post> posts, Dictionary<Guid, bool> likedPostIds)
+    public static List<PostDto> FromPostList(List<Database.Post> posts, Dictionary<Guid, bool> likedPostIds, Dictionary<Guid, bool> favoritedPostIds = null)
     {
-        return posts.Select(p => FromPost(p, likedPostIds.ContainsKey(p.Id))).ToList();
+        favoritedPostIds ??= new Dictionary<Guid, bool>();
+        return posts.Select(p => FromPost(p, likedPostIds.ContainsKey(p.Id), favoritedPostIds.ContainsKey(p.Id))).ToList();
     }
 }
 public class PostBlockDto{

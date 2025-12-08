@@ -43,7 +43,7 @@ public class PostController : ControllerBase
         try
         {
             var detail = await postService.GetPostDetailAsync(postId, userId);
-            var dto = PostDto.FromPost(detail.Post, detail.IsLiked);
+        var dto = PostDto.FromPost(detail.Post, detail.IsLiked, detail.IsFavorited);
             return ApiResponse<PostDto>.Ok(dto);
         }
         catch (KeyNotFoundException e)
@@ -62,7 +62,7 @@ public class PostController : ControllerBase
     {
         var userId = HttpContext.GetUserId();
         var result = await postService.GetPostsPageAsync(page, pageSize, userId);
-        var dtos = result.Posts.Select(p => PostDto.FromPost(p, result.LikedPostIds.Contains(p.Id))).ToList();
+        var dtos = result.Posts.Select(p => PostDto.FromPost(p, result.LikedPostIds.Contains(p.Id), result.FavoritedPostIds.Contains(p.Id))).ToList();
         return PaginatedResponse<PostDto>.CreateApiResponse(dtos, page, pageSize, result.TotalCount);
     }
     
@@ -72,7 +72,7 @@ public class PostController : ControllerBase
         var userId = HttpContext.GetUserId();
         //show blocked posts
         var result = await postService.GetMyPostsAsync(userId, page, pageSize);
-        var dtos = result.Posts.Select(p => PostDto.FromPost(p, result.LikedPostIds.Contains(p.Id))).ToList();
+        var dtos = result.Posts.Select(p => PostDto.FromPost(p, result.LikedPostIds.Contains(p.Id), result.FavoritedPostIds.Contains(p.Id))).ToList();
         return PaginatedResponse<PostDto>.CreateApiResponse(dtos, page, pageSize, result.TotalCount);
     }
     [HttpGet("user")]
@@ -83,7 +83,7 @@ public class PostController : ControllerBase
         try
         {
             var result = await postService.GetUserPostsAsync(userId, page, pageSize, currentUserId);
-            var dtos = result.Posts.Select(p => PostDto.FromPost(p, result.LikedPostIds.Contains(p.Id))).ToList();
+            var dtos = result.Posts.Select(p => PostDto.FromPost(p, result.LikedPostIds.Contains(p.Id), result.FavoritedPostIds.Contains(p.Id))).ToList();
             return PaginatedResponse<PostDto>.CreateApiResponse(dtos, page, pageSize, result.TotalCount);
         }
         catch (Exception e)
@@ -188,7 +188,7 @@ public class PostController : ControllerBase
         try
         {
             var result = await postService.SearchPostsAsync(query, tag, page, pageSize, userId);
-            var dtos = result.Posts.Select(p => PostDto.FromPost(p, result.LikedPostIds.Contains(p.Id))).ToList();
+            var dtos = result.Posts.Select(p => PostDto.FromPost(p, result.LikedPostIds.Contains(p.Id), result.FavoritedPostIds.Contains(p.Id))).ToList();
             return PaginatedResponse<PostDto>.CreateApiResponse(dtos, page, pageSize, result.TotalCount);
         }
         catch (ArgumentException e)
@@ -198,6 +198,60 @@ public class PostController : ControllerBase
         catch (Exception e)
         {
             return ApiResponse<PaginatedResponse<PostDto>>.Fail(e.Message, "SEARCH_POSTS_FAILED");
+        }
+    }
+    
+    [HttpPost("favorite")]
+    public async Task<ApiResponse> FavoritePost([FromQuery(Name = "id")] Guid postId)
+    {
+        var userId = HttpContext.GetUserId();
+        try
+        {
+            await postService.FavoritePostAsync(postId, userId);
+            return ApiResponse.Ok();
+        }
+        catch (KeyNotFoundException e)
+        {
+            return ApiResponse.Fail(e.Message, "POST_NOT_FOUND");
+        }
+        catch (Exception e)
+        {
+            return ApiResponse.Fail(e.Message, "FAVORITE_FAILED");
+        }
+    }
+    
+    [HttpPost("unfavorite")]
+    public async Task<ApiResponse> UnfavoritePost([FromQuery(Name = "id")] Guid postId)
+    {
+        var userId = HttpContext.GetUserId();
+        try
+        {
+            await postService.UnfavoritePostAsync(postId, userId);
+            return ApiResponse.Ok();
+        }
+        catch (KeyNotFoundException e)
+        {
+            return ApiResponse.Fail(e.Message, "POST_NOT_FOUND");
+        }
+        catch (Exception e)
+        {
+            return ApiResponse.Fail(e.Message, "UNFAVORITE_FAILED");
+        }
+    }
+    
+    [HttpGet("favorites")]
+    public async Task<ApiResponse<PaginatedResponse<PostDto>>> GetFavoritePosts([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        var userId = HttpContext.GetUserId();
+        try
+        {
+            var result = await postService.GetUserFavoritePostsAsync(userId, page, pageSize);
+            var dtos = result.Posts.Select(p => PostDto.FromPost(p, result.LikedPostIds.Contains(p.Id), result.FavoritedPostIds.Contains(p.Id))).ToList();
+            return PaginatedResponse<PostDto>.CreateApiResponse(dtos, page, pageSize, result.TotalCount);
+        }
+        catch (Exception e)
+        {
+            return ApiResponse<PaginatedResponse<PostDto>>.Fail(e.Message, "GET_FAVORITE_POSTS_FAILED");
         }
     }
 }

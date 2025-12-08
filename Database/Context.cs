@@ -20,6 +20,7 @@ public class AppDbContext : DbContext
     public DbSet<UserFavoriteCategory> UserFavoriteCategories { get; set; }
     public DbSet<UserAsset> UserAssets { get; set; }
     public DbSet<Notification> Notifications { get; set; }
+    public DbSet<PostFavorite> PostFavorites { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -228,6 +229,22 @@ public class AppDbContext : DbContext
             
             entity.Property(e => e.Reason).IsRequired();
             entity.Property(e => e.ActionTime).IsRequired();
+        });
+        
+        // 配置PostFavorite实体
+        modelBuilder.Entity<PostFavorite>(entity =>
+        {
+            entity.HasKey(pf => new { pf.PostId, pf.UserId });
+            
+            entity.HasOne(pf => pf.Post)
+                  .WithMany(p => p.PostFavorites)
+                  .HasForeignKey(pf => pf.PostId)
+                  .IsRequired();
+            
+            entity.HasOne(pf => pf.User)
+                  .WithMany(u => u.PostFavorites)
+                  .HasForeignKey(pf => pf.UserId)
+                  .IsRequired();
         });
     }
 

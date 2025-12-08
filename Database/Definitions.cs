@@ -59,6 +59,7 @@ public class User
     public decimal Balance { get; set; } = 0;
 
     public ICollection<PostLike> PostLikes { get; set; } = new List<PostLike>();
+    public ICollection<PostFavorite> PostFavorites { get; set; } = new List<PostFavorite>();
     [JsonIgnore]
     public ICollection<Product> Products { get; set; } = new List<Product>();
     public ICollection<TransactionRecord> PurchasedProducts { get; set; } = new List<TransactionRecord>();
@@ -98,6 +99,7 @@ public class Post{
     public ICollection<PostImage> PostImages { get; set; } = new List<PostImage>();
     public ICollection<PostTags> PostTags { get; set; } = new List<PostTags>();
     public ICollection<PostLike> PostLikes { get; set; } = new List<PostLike>();
+    public ICollection<PostFavorite> PostFavorites { get; set; } = new List<PostFavorite>();
     public ICollection<PostBlock> PostBlocks { get; set; } = new List<PostBlock>();
 }
 
@@ -232,6 +234,15 @@ public class PostBlock
     public long AdminUserId { get; set; }
     // 管理员导航属性
     public User AdminUser { get; set; }
+}
+
+public class PostFavorite
+{
+    public Guid PostId { get; set; }
+    public Post Post { get; set; }
+    public long UserId { get; set; }
+    public User User { get; set; }
+    public DateTime CreateTime { get; set; } = DateTime.UtcNow;
 }
 
 #pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。

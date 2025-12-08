@@ -448,4 +448,94 @@ public class PostRepository
             
         return (posts, totalCount);
     }
+    
+    /// <summary>
+    /// 添加帖子收藏
+    /// </summary>
+    public async Task AddPostFavoriteAsync(Guid postId, long userId)
+    {
+        // 检查是否已经收藏
+        var alreadyFavorited = await _context.PostFavorites
+            .AnyAsync(pf => pf.PostId == postId && pf.UserId == userId);
+        
+        if (!alreadyFavorited)
+        {
+            _context.PostFavorites.Add(new PostFavorite
+            {
+                PostId = postId,
+                UserId = userId
+            });
+            
+            await _context.SaveChangesAsync();
+        }
+    }
+    
+    /// <summary>
+    /// 取消帖子收藏
+    /// </summary>
+    public async Task RemovePostFavoriteAsync(Guid postId, long userId)
+    {
+        var postFavorite = await _context.PostFavorites
+            .FirstOrDefaultAsync(pf => pf.PostId == postId && pf.UserId == userId);
+        
+        if (postFavorite != null)
+        {
+            _context.PostFavorites.Remove(postFavorite);
+            await _context.SaveChangesAsync();
+        }
+    }
+    
+    /// <summary>
+    /// 检查用户是否已收藏帖子
+    /// </summary>
+    public async Task<bool> IsPostFavoritedByUserAsync(Guid postId, long userId)
+    {
+        return await _context.PostFavorites
+            .AnyAsync(pf => pf.PostId == postId && pf.UserId == userId);
+    }
+    
+    /// <summary>
+    /// 批量检查用户对多个帖子的收藏状态
+    /// </summary>
+    public async Task<HashSet<Guid>> GetUserFavoritedPostsAsync(IEnumerable<Guid> postIds, long userId)
+    {
+        return await _context.PostFavorites
+            .Where(pf => postIds.Contains(pf.PostId) && pf.UserId == userId)
+            .Select(pf => pf.PostId)
+            .ToHashSetAsync();
+    }
+    
+    /// <summary>
+    /// 获取用户收藏的帖子
+    /// </summary>
+    public async Task<List<Post>> GetUserFavoritePostsAsync(long userId, int page = 1, int pageSize = 10)
+    {
+        return await _context.PostFavorites
+            .Where(pf => pf.UserId == userId)
+            .Include(pf => pf.Post)
+            .ThenInclude(p => p.User)
+            .Include(pf => pf.Post)
+            .ThenInclude(p => p.PostImages)
+            .ThenInclude(pi => pi.Image)
+            .Include(pf => pf.Post)
+            .ThenInclude(p => p.PostTags)
+            .Include(pf => pf.Post)
+            .ThenInclude(p => p.PostLikes)
+            .OrderByDescending(pf => pf.CreateTime)
+            .Select(pf => pf.Post)
+            .Where(p => !p.IsBlocked)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+    
+    /// <summary>
+    /// 获取用户收藏帖子数量
+    /// </summary>
+    public async Task<int> GetUserFavoritePostCountAsync(long userId)
+    {
+        return await _context.PostFavorites
+            .Where(pf => pf.UserId == userId)
+            .CountAsync();
+    }
 }

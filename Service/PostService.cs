@@ -87,10 +87,12 @@ public class PostService
         }
         
         bool isLiked = await postRepository.IsPostLikedByUserAsync(postId, currentUserId);
+        bool isFavorited = await postRepository.IsPostFavoritedByUserAsync(postId, currentUserId);
         return new PostDetailResult
         {
             Post = post,
-            IsLiked = isLiked
+            IsLiked = isLiked,
+            IsFavorited = isFavorited
         };
     }
     
@@ -104,14 +106,16 @@ public class PostService
         
         await Task.WhenAll(posts.Select(post => postRepository.IncrementPostViewCountAsync(post.Id)));
         
-        // 批量获取用户点赞的帖子ID，避免N+1查询问题
+        // 批量获取用户点赞和收藏的帖子ID，避免N+1查询问题
         var postIds = posts.Select(p => p.Id);
         var likedPostIds = await postRepository.GetUserLikedPostsAsync(postIds, currentUserId);
+        var favoritedPostIds = await postRepository.GetUserFavoritedPostsAsync(postIds, currentUserId);
         
         return new PagedPostsResult
         {
             Posts = posts,
             LikedPostIds = likedPostIds,
+            FavoritedPostIds = favoritedPostIds,
             TotalCount = totalCount
         };
     }
@@ -131,14 +135,16 @@ public class PostService
         var posts = await postRepository.GetPostsByUserIdAsync(userId, page, pageSize, includeBlocked: true);
         var totalCount = await postRepository.GetUserPostCountAsync(userId, includeBlocked: true);
         
-        // 批量获取用户点赞的帖子ID，避免N+1查询问题
+        // 批量获取用户点赞和收藏的帖子ID，避免N+1查询问题
         var postIds = posts.Select(p => p.Id);
         var likedPostIds = await postRepository.GetUserLikedPostsAsync(postIds, userId);
+        var favoritedPostIds = await postRepository.GetUserFavoritedPostsAsync(postIds, userId);
         
         return new PagedPostsResult
         {
             Posts = posts,
             LikedPostIds = likedPostIds,
+            FavoritedPostIds = favoritedPostIds,
             TotalCount = totalCount
         };
     }
@@ -154,14 +160,16 @@ public class PostService
         var posts = await postRepository.GetPostsByUserIdAsync(userId, page, pageSize, includeBlocked);
         var totalCount = await postRepository.GetUserPostCountAsync(userId, includeBlocked);
         
-        // 批量获取用户点赞的帖子ID，避免N+1查询问题
+        // 批量获取用户点赞和收藏的帖子ID，避免N+1查询问题
         var postIds = posts.Select(p => p.Id);
         var likedPostIds = await postRepository.GetUserLikedPostsAsync(postIds, currentUserId);
+        var favoritedPostIds = await postRepository.GetUserFavoritedPostsAsync(postIds, currentUserId);
         
         return new PagedPostsResult
         {
             Posts = posts,
             LikedPostIds = likedPostIds,
+            FavoritedPostIds = favoritedPostIds,
             TotalCount = totalCount
         };
     }
@@ -319,14 +327,65 @@ public class PostService
         
         var (posts, totalCount) = await postRepository.SearchPostsAsync(query, tag, page, pageSize);
         
-        // 批量获取用户点赞的帖子ID，避免N+1查询问题
+        // 批量获取用户点赞和收藏的帖子ID，避免N+1查询问题
         var postIds = posts.Select(p => p.Id);
         var likedPostIds = await postRepository.GetUserLikedPostsAsync(postIds, currentUserId);
+        var favoritedPostIds = await postRepository.GetUserFavoritedPostsAsync(postIds, currentUserId);
         
         return new PagedPostsResult
         {
             Posts = posts,
             LikedPostIds = likedPostIds,
+            FavoritedPostIds = favoritedPostIds,
+            TotalCount = totalCount
+        };
+    }
+    
+    public async Task<bool> FavoritePostAsync(Guid postId, long userId)
+    {
+        // 检查帖子是否存在
+        var post = await postRepository.GetPostByIdAsync(postId);
+        if (post == null)
+        {
+            return false;
+        }
+        
+        await postRepository.AddPostFavoriteAsync(postId, userId);
+        return true;
+    }
+    
+    public async Task<bool> UnfavoritePostAsync(Guid postId, long userId)
+    {
+        // 检查帖子是否存在
+        var post = await postRepository.GetPostByIdAsync(postId);
+        if (post == null)
+        {
+            return false;
+        }
+        
+        await postRepository.RemovePostFavoriteAsync(postId, userId);
+        return true;
+    }
+    
+    public async Task<PagedPostsResult> GetUserFavoritePostsAsync(long userId, int page = 1, int pageSize = 10)
+    {
+        if (page <= 0) page = 1;
+        if (pageSize <= 0) pageSize = 10;
+        
+        var posts = await postRepository.GetUserFavoritePostsAsync(userId, page, pageSize);
+        var totalCount = await postRepository.GetUserFavoritePostCountAsync(userId);
+        
+        // 批量获取用户点赞的帖子ID，避免N+1查询问题
+        var postIds = posts.Select(p => p.Id);
+        var likedPostIds = await postRepository.GetUserLikedPostsAsync(postIds, userId);
+        // 自己收藏的帖子，收藏状态肯定是true
+        var favoritedPostIds = new HashSet<Guid>(postIds);
+        
+        return new PagedPostsResult
+        {
+            Posts = posts,
+            LikedPostIds = likedPostIds,
+            FavoritedPostIds = favoritedPostIds,
             TotalCount = totalCount
         };
     }
@@ -336,11 +395,13 @@ public class PostDetailResult
 {
     public Database.Post Post { get; set; } = null!;
     public bool IsLiked { get; set; }
+    public bool IsFavorited { get; set; }
 }
 
 public class PagedPostsResult
 {
     public List<Database.Post> Posts { get; set; } = new();
     public HashSet<Guid> LikedPostIds { get; set; } = new();
+    public HashSet<Guid> FavoritedPostIds { get; set; } = new();
     public int TotalCount { get; set; }
 }
