@@ -69,6 +69,10 @@ public class TransactionService
             await _userAssetRepository.UpdateUserAssetAsync(sellerAsset);
         }
         
+        // 将商品标记为已删除
+        product.IsDeleted = true;
+        await _productRepository.UpdateProductAsync(product);
+        
         // 创建交易记录
         var transaction = new TransactionRecord
         {
