@@ -38,7 +38,26 @@ public class ProductCategoryService
         
         return await _categoryRepository.AddCategoryAsync(category);
     }
-    
+    public async Task<ProductCategory> CreateCategoryByGuidAsync(string name, Guid coverImageId,Guid id)
+    {
+        // 验证分类名称是否已存在
+        var existingCategory = await _categoryRepository.GetCategoryByIdAsync(id);
+        if (existingCategory != null)
+        {
+            return existingCategory;
+        }
+
+        var category = new ProductCategory
+        {
+            Id = id,
+            Name = name,
+            CoverImageId = coverImageId,
+            CreateTime = DateTime.UtcNow
+        };
+
+        return await _categoryRepository.AddCategoryAsync(category);
+    }
+
     /// <summary>
     /// 获取分类详情
     /// </summary>
