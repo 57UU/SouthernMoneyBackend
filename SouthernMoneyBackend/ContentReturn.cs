@@ -8,6 +8,7 @@ public class TokenResponseDto
 {
     public string Token { get; set; }
     public string RefreshToken { get; set; }
+    public long Id { get; set; }
 }
 
 //login
@@ -27,7 +28,7 @@ public class PostDto
     public List<string> Tags { get; set; } = new();
     public List<Guid> ImageIds { get; set; } = new();
     public PostUploaderDto? Uploader { get; set; }
-    
+
     /// <summary>
     /// 从Post实体创建PostDto的工厂构造函数
     /// </summary>
@@ -52,11 +53,11 @@ public class PostDto
             {
                 Id = post.User.Id,
                 Name = post.User.Name,
-                Avatar= post.User.Avatar
+                Avatar = post.User.Avatar
             }
         };
     }
-    
+
     /// <summary>
     /// 从Post实体列表创建PostDto列表
     /// </summary>
@@ -66,12 +67,13 @@ public class PostDto
         return posts.Select(p => FromPost(p, likedPostIds.ContainsKey(p.Id), favoritedPostIds.ContainsKey(p.Id))).ToList();
     }
 }
-public class PostBlockDto{
+public class PostBlockDto
+{
     public DateTime ActionTime { get; set; }
     public bool IsBlock { get; set; }
     public string Reason { get; set; }
     public PostUploaderDto Operator { get; set; }
-    
+
     /// <summary>
     /// 从PostBlock实体创建PostBlockDto的工厂构造函数
     /// </summary>
@@ -85,7 +87,7 @@ public class PostBlockDto{
             Operator = PostUploaderDto.FromUser(postBlock.AdminUser)
         };
     }
-    
+
     /// <summary>
     /// 从PostBlock实体列表创建PostBlockDto列表
     /// </summary>
@@ -134,7 +136,7 @@ public class UserAssetDto
     public decimal AccumulatedEarn { get; set; }
     public decimal EarnRate { get; set; }
     public decimal Balance { get; set; }
-    
+
     /// <summary>
     /// 从UserAsset实体创建UserAssetDto的工厂构造函数
     /// </summary>
@@ -149,7 +151,7 @@ public class UserAssetDto
             Balance = asset.Balance
         };
     }
-    
+
     /// <summary>
     /// 创建默认UserAssetDto的工厂构造函数
     /// </summary>
@@ -176,7 +178,7 @@ public class UserProfileDto
     public DateTime CreateTime { get; set; }
     public UserAssetDto Asset { get; set; }
     public bool IsAdmin { get; set; }
-    
+
     /// <summary>
     /// 从User实体和UserAsset实体创建UserProfileDto的工厂构造函数
     /// </summary>
@@ -184,7 +186,7 @@ public class UserProfileDto
     {
         return FromUser(user, UserAssetDto.FromUserAsset(asset));
     }
-    
+
     /// <summary>
     /// 从User实体和UserAssetDto创建UserProfileDto的工厂构造函数
     /// </summary>
@@ -199,7 +201,7 @@ public class UserProfileDto
             IsBlocked = user.IsBlocked,
             CreateTime = user.CreateTime,
             Asset = assetDto,
-            IsAdmin=user.IsAdmin
+            IsAdmin = user.IsAdmin
         };
     }
 }
@@ -218,7 +220,7 @@ public class PurchaseRecordDto
     public decimal Price { get; set; }
     public decimal TotalPrice { get; set; }
     public DateTime PurchaseTime { get; set; }
-    
+
     /// <summary>
     /// 从TransactionRecord实体创建PurchaseRecordDto的工厂构造函数
     /// </summary>
@@ -234,7 +236,7 @@ public class PurchaseRecordDto
             PurchaseTime = transaction.PurchaseTime
         };
     }
-    
+
     /// <summary>
     /// 从TransactionRecord实体列表创建PurchaseRecordDto列表
     /// </summary>
@@ -262,10 +264,9 @@ public class ProductDto
     public string Description { get; set; }
     public Guid CategoryId { get; set; }
     public string CategoryName { get; set; }
-    public long UploaderUserId { get; set; }
-    public string UploaderName { get; set; }
     public DateTime CreateTime { get; set; }
-    
+    public PostUploaderDto Uploader { get; set; }
+
     /// <summary>
     /// 从Product实体创建ProductDto的工厂构造函数
     /// </summary>
@@ -279,12 +280,11 @@ public class ProductDto
             Description = product.Description,
             CategoryId = product.CategoryId,
             CategoryName = product.Category.Name,
-            UploaderUserId = product.UploaderUserId,
-            UploaderName = product.User.Name,
+            Uploader = PostUploaderDto.FromUser(product.User),
             CreateTime = product.CreateTime
         };
     }
-    
+
     /// <summary>
     /// 从Product实体列表创建ProductDto列表
     /// </summary>
@@ -300,6 +300,20 @@ public class ProductCategoryDto
     public string Name { get; set; }
     public Guid CoverImageId { get; set; }
     public DateTime CreateTime { get; set; }
+    public bool Favorited { get; set; } = false;
+    private ProductCategoryDto() { }
+    public static ProductCategoryDto FromProductCategory(Database.ProductCategory category, long userId)
+    {
+        return new ProductCategoryDto
+        {
+            Id = category.Id,
+            Name = category.Name,
+            CoverImageId = category.CoverImageId,
+            CreateTime = category.CreateTime,
+            Favorited = category.FavoriteUsers.Any(u => u.UserId == userId)
+        };
+    }
+    
 }
 
 /// <summary>
@@ -308,7 +322,7 @@ public class ProductCategoryDto
 public class CategorySearchResultDto
 {
     public List<string> Categories { get; set; }
-    
+
     public CategorySearchResultDto(List<string> categories)
     {
         Categories = categories;
@@ -327,7 +341,7 @@ public class UserDto
     public string? BlockReason { get; set; }
     public DateTime? BlockedAt { get; set; }
     public DateTime CreateTime { get; set; }
-    
+
     /// <summary>
     /// 从User实体创建UserDto的工厂构造函数
     /// </summary>
@@ -346,7 +360,7 @@ public class UserDto
             CreateTime = user.CreateTime
         };
     }
-    
+
     /// <summary>
     /// 从User实体列表创建UserDto列表
     /// </summary>
@@ -367,7 +381,7 @@ public class UserDetailDto
     public string? BlockReason { get; set; }
     public DateTime? BlockedAt { get; set; }
     public DateTime CreateTime { get; set; }
-    
+
     /// <summary>
     /// 从User实体创建UserDetailDto的工厂构造函数
     /// </summary>

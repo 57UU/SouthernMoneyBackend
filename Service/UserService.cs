@@ -1,3 +1,4 @@
+using Database;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -98,7 +99,7 @@ public class UserService
     /// <param name="password"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public async Task<(string token, string refreshToken)> LoginByPassword(string name, string password)
+    public async Task<(string token, string refreshToken,User user)> LoginByPassword(string name, string password)
     {
         var user = await _userRepository.GetUserByNameAsync(name)
             ?? throw new Exception("User not found");
@@ -114,7 +115,7 @@ public class UserService
         var token = JwtUtils.GenerateToken(user.Id, user.IsAdmin);
         // 生成Refresh Token
         var refreshToken = JwtUtils.GenerateRefreshToken(user.Id);
-        return (token, refreshToken);
+        return (token, refreshToken,user);
     }
 
     /// <summary>

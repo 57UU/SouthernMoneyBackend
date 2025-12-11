@@ -30,6 +30,7 @@ public class ProductCategoryRepository
     public async Task<ProductCategory?> GetCategoryByIdAsync(Guid id)
     {
         return await _context.ProductCategories
+            .Include(c => c.FavoriteUsers)
             .FirstOrDefaultAsync(c => c.Id == id);
     }
     
@@ -48,6 +49,7 @@ public class ProductCategoryRepository
     public async Task<List<ProductCategory>> GetAllCategoriesAsync()
     {
         return await _context.ProductCategories
+            .Include(c => c.FavoriteUsers)
             .OrderBy(c => c.Name)
             .ToListAsync();
     }
@@ -108,6 +110,7 @@ public class ProductCategoryRepository
     public async Task<List<ProductCategory>> SearchCategoriesAsync(string keyword)
     {
         return await _context.ProductCategories
+            .Include(c => c.FavoriteUsers)
             .Where(c => c.Name.Contains(keyword))
             .OrderBy(c => c.Name)
             .ToListAsync();

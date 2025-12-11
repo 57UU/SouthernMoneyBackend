@@ -66,6 +66,7 @@ public class UserFavoriteCategoryRepository
         return await _context.UserFavoriteCategories
             .Where(f => f.UserId == userId)
             .Include(f => f.Category)
+                .ThenInclude(c => c.FavoriteUsers)
             .OrderByDescending(f => f.CreateTime)
             .Select(f => f.Category)
             .ToListAsync();

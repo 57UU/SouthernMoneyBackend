@@ -32,19 +32,24 @@ public class LoginController : ControllerBase
     }
     [HttpPost("loginByPassword", Name = "LoginByPassword")]
     [AllowAnonymous]
-    public async Task<ApiResponse<object>> LoginByPassword([FromBody] LoginByPasswordRequest request)
+    public async Task<ApiResponse<TokenResponseDto>> LoginByPassword([FromBody] LoginByPasswordRequest request)
     {
         try
         {
-            var (token, refreshToken) = await userService.LoginByPassword(request.Name, request.Password);
-            return ApiResponse.Ok(new TokenResponseDto { Token = token, RefreshToken = refreshToken });
+            var (token, refreshToken,user) = await userService.LoginByPassword(request.Name, request.Password);
+            return ApiResponse<TokenResponseDto>.Ok(new TokenResponseDto
+            {
+                Token = token,
+                RefreshToken = refreshToken,
+                Id = user.Id
+            });
         }
         catch (Exception e)
         {
-            return ApiResponse.Fail(e.Message, "LOGIN_FAILED");
+            return ApiResponse<TokenResponseDto>.Fail(e.Message, "LOGIN_FAILED");
         }
     }
-    
+
     [HttpPost("refreshToken", Name = "RefreshToken")]
     [AllowAnonymous]
     public async Task<ApiResponse<object>> RefreshToken([FromBody] RefreshTokenRequest request)

@@ -180,15 +180,11 @@ public class StoreController : ControllerBase
     {
         try
         {
+            var userId = HttpContext.GetUserId();
+
             var categories = await _categoryService.GetAllCategoriesAsync();
             
-            var categoryDtos = categories.Select(category => new ProductCategoryDto
-            {
-                Id = category.Id,
-                Name = category.Name,
-                CoverImageId = category.CoverImageId,
-                CreateTime = category.CreateTime
-            }).ToList();
+            var categoryDtos = categories.Select(c => ProductCategoryDto.FromProductCategory(c, userId)).ToList();
             
             return ApiResponse<List<ProductCategoryDto>>.Ok(categoryDtos);
         }
@@ -211,13 +207,8 @@ public class StoreController : ControllerBase
                 return ApiResponse<ProductCategoryDto>.Fail("Category not found");
             }
             
-            var categoryDto = new ProductCategoryDto
-            {
-                Id = category.Id,
-                Name = category.Name,
-                CoverImageId = category.CoverImageId,
-                CreateTime = category.CreateTime
-            };
+            var userId = HttpContext.GetUserId();
+            var categoryDto = ProductCategoryDto.FromProductCategory(category, userId);
             
             return ApiResponse<ProductCategoryDto>.Ok(categoryDto);
         }
@@ -450,10 +441,10 @@ public class StoreController : ControllerBase
         }
     }
     
-    // POST /store/categories/{categoryId}/favorite
-    [HttpPost("categories/{categoryId}/favorite")]
+    // POST /store/categories/favorite
+    [HttpPost("categories/favorite")]
     [AuthorizeUser]
-    public async Task<ApiResponse> FavoriteCategory(Guid categoryId)
+    public async Task<ApiResponse> FavoriteCategory([FromBody] favoriteCategoryRequest request)
     {
         try
         {
@@ -464,7 +455,7 @@ public class StoreController : ControllerBase
             }
             
             // 添加收藏
-            await _favoriteCategoryService.AddFavoriteCategoryAsync(userId, categoryId);
+            await _favoriteCategoryService.AddFavoriteCategoryAsync(userId, request.CategoryId);
             
             return ApiResponse.Ok();
         }
@@ -474,21 +465,17 @@ public class StoreController : ControllerBase
         }
     }
     
-    // POST /store/categories/{categoryId}/unfavorite
-    [HttpPost("categories/{categoryId}/unfavorite")]
+    // POST /store/categories/unfavorite
+    [HttpPost("categories/unfavorite")]
     [AuthorizeUser]
-    public async Task<ApiResponse> UnfavoriteCategory(Guid categoryId)
+    public async Task<ApiResponse> UnfavoriteCategory([FromBody] favoriteCategoryRequest request)
     {
         try
         {
-            // 从HttpContext中获取用户ID
-            if (HttpContext.Items["UserId"] is not long userId)
-            {
-                return ApiResponse.Fail("User not authenticated");
-            }
+            var userId = HttpContext.GetUserId();
             
             // 取消收藏
-            var success = await _favoriteCategoryService.RemoveFavoriteCategoryAsync(userId, categoryId);
+            var success = await _favoriteCategoryService.RemoveFavoriteCategoryAsync(userId, request.CategoryId);
             if (!success)
             {
                 return ApiResponse.Fail("Category not favorited");
@@ -509,23 +496,15 @@ public class StoreController : ControllerBase
     {
         try
         {
-            // 从HttpContext中获取用户ID
-            if (HttpContext.Items["UserId"] is not long userId)
-            {
-                return ApiResponse<List<ProductCategoryDto>>.Fail("User not authenticated");
-            }
+            var userId = HttpContext.GetUserId();
             
             // 获取用户收藏分类
             var categories = await _favoriteCategoryService.GetUserFavoriteCategoriesAsync(userId);
             
             // 转换为DTO
-            var categoryDtos = categories.Select(category => new ProductCategoryDto
-            {
-                Id = category.Id,
-                Name = category.Name,
-                CoverImageId = category.CoverImageId,
-                CreateTime = category.CreateTime
-            }).ToList();
+            var categoryDtos = categories.Select(
+                category => ProductCategoryDto.FromProductCategory(category, userId)
+                ).ToList();
             
             return ApiResponse<List<ProductCategoryDto>>.Ok(categoryDtos);
         }
