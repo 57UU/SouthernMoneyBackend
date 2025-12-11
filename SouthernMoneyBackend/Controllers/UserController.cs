@@ -180,24 +180,20 @@ public class UserController : ControllerBase
             }
             
             // 获取或创建用户资产记录
-            UserAsset? asset;
-            try
+        UserAsset? asset;
+        try
+        {
+            asset = await _userAssetService.GetUserAssetByUserIdAsync(userId);
+            if (asset == null)
             {
-                asset = await _userAssetService.GetUserAssetByUserIdAsync(userId);
-                if (asset == null)
-                {
-                    return ApiResponse.Fail("User asset not found");
-                }
-                else
-                {
-                    // 增加用户余额
-                    await _userAssetService.AddToUserBalanceAsync(userId, request.Amount);
-                    
-                    // 更新总资产
-                    asset.Total += request.Amount;
-                    await _userAssetService.UpdateUserAssetAsync(asset);
-                }
+                return ApiResponse.Fail("User asset not found");
             }
+            else
+            {
+                // 增加用户余额 - AddToUserBalanceAsync 方法已经更新了总资产
+                await _userAssetService.AddToUserBalanceAsync(userId, request.Amount);
+            }
+        }
             catch (Exception)
             {
                 // 如果获取或更新失败，尝试创建新记录

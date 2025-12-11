@@ -54,20 +54,42 @@ public class TransactionService
             throw new Exception("Insufficient balance");
         }
         
+        // 检查销售者资产是否存在
+        var sellerAsset = await _userAssetRepository.GetUserAssetByUserIdAsync(product.UploaderUserId);
+        if (sellerAsset == null)
+        {
+            throw new Exception("Seller asset not found");
+        }
+        
         // 扣除购买者余额
-        await _userAssetRepository.SubtractFromUserBalanceAsync(buyerId, totalPrice);
+        var subtractResult = await _userAssetRepository.SubtractFromUserBalanceAsync(buyerId, totalPrice);
+        if (!subtractResult)
+        {
+            throw new Exception("Failed to subtract balance from buyer");
+        }
         
         // 增加销售者余额
-        var sellerAsset = await _userAssetRepository.GetUserAssetByUserIdAsync(product.UploaderUserId);
+        var addResult = await _userAssetRepository.AddToUserBalanceAsync(product.UploaderUserId, totalPrice);
+        if (!addResult)
+        {
+            // 如果增加销售者余额失败，需要回滚购买者的余额
+            await _userAssetRepository.AddToUserBalanceAsync(buyerId, totalPrice);
+            throw new Exception("Failed to add balance to seller");
+        }
+        
+        // 更新销售者收益
+        sellerAsset = await _userAssetRepository.GetUserAssetByUserIdAsync(product.UploaderUserId);
         if (sellerAsset != null)
         {
-            await _userAssetRepository.AddToUserBalanceAsync(product.UploaderUserId, totalPrice);
-            
-            // 更新销售者收益
             sellerAsset.AccumulatedEarn += totalPrice;
             sellerAsset.TodayEarn += totalPrice;
+            sellerAsset.Total = sellerAsset.Balance; // 确保总资产等于余额
             await _userAssetRepository.UpdateUserAssetAsync(sellerAsset);
         }
+        
+        // 将商品标记为已删除
+        product.IsDeleted = true;
+        await _productRepository.UpdateProductAsync(product);
         
         // 创建交易记录
         var transaction = new TransactionRecord
