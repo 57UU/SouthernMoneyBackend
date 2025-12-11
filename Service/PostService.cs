@@ -285,7 +285,7 @@ public class PostService
         return await postRepository.DeletePostAsync(postId);
     }
     
-    public async Task<bool> UpdatePostAsync(Guid postId, long userId, string? title = null, string? content = null)
+    public async Task<bool> UpdatePostAsync(Guid postId, long userId, string? title = null, string? content = null, ICollection<Guid>? imageIds = null, ICollection<string>? tags = null)
     {
         var post = await postRepository.GetPostByIdAsync(postId);
         if (post == null)
@@ -307,6 +307,40 @@ public class PostService
         if (!string.IsNullOrWhiteSpace(content))
         {
             post.Content = content;
+        }
+        
+        // 处理图片更新
+        if (imageIds != null)
+        {
+            // 清除现有的图片关联
+            post.PostImages.Clear();
+            
+            // 添加新的图片关联
+            foreach (var imageId in imageIds)
+            {
+                post.PostImages.Add(new Database.PostImage
+                {
+                    PostId = post.Id,
+                    ImageId = imageId
+                });
+            }
+        }
+        
+        // 处理标签更新
+        if (tags != null)
+        {
+            // 清除现有的标签关联
+            post.PostTags.Clear();
+            
+            // 添加新的标签关联
+            foreach (var tag in tags.Where(t => !string.IsNullOrWhiteSpace(t)))
+            {
+                post.PostTags.Add(new Database.PostTags
+                {
+                    PostId = post.Id,
+                    Tag = tag.Trim()
+                });
+            }
         }
         
         await postRepository.UpdatePostAsync(post);

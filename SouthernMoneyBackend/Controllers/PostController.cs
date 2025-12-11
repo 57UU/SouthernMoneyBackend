@@ -158,7 +158,7 @@ public class PostController : ControllerBase
         var userId = HttpContext.GetUserId();
         try
         {
-            await postService.UpdatePostAsync(request.PostId, userId, request.Title, request.Content);
+            await postService.UpdatePostAsync(request.PostId, userId, request.Title, request.Content, request.ImageIds, request.Tags);
             return ApiResponse.Ok();
         }
         catch (KeyNotFoundException e)

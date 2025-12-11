@@ -59,7 +59,7 @@ public class EditPostRequest
     public Guid PostId { get; set; } // 帖子ID
     public string Title { get; set; } // 新标题
     public string Content { get; set; } // 新内容
-    public ICollection<string> ImageIds { get; set; } // 新图片ID列表
+    public ICollection<Guid> ImageIds { get; set; } // 新图片ID列表
     public ICollection<string> Tags { get; set; } // 新标签列表
 }
 // Post finished by hr
