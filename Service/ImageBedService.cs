@@ -10,12 +10,11 @@ public class ImageBedService
     {
         this.imageRepository = imageRepository;
     }
-    
-    public async Task<Guid> UploadImageAsync(byte[] imageData, long userId, string imageType, string? description = null)
+    public async Task<Guid> UploadImageAsync(byte[] imageData, long userId, string imageType, Guid guid,string? description = null)
     {
         var image = new Database.Image
         {
-            Id = Guid.NewGuid(),
+            Id = guid,
             UploaderUserId = userId,
             Data = imageData,
             ImageType = imageType,
@@ -23,8 +22,14 @@ public class ImageBedService
             CreateTime = DateTime.UtcNow
         };
         var imageId = await imageRepository.AddImageAsync(image);
-        
+
         return imageId.Id;
+    }
+
+
+    public Task<Guid> UploadImageAsync(byte[] imageData, long userId, string imageType, string? description = null)
+    {
+        return UploadImageAsync(imageData, userId, imageType, Guid.NewGuid(),description );
     }
     
     public async Task<Database.Image?> GetImageAsync(Guid imageId)

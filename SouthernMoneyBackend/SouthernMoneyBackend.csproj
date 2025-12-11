@@ -21,6 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="images\default_user.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Utils\swaggerInject.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

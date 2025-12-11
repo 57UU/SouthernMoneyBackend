@@ -12,6 +12,7 @@ namespace SouthernMoneyBackend.Controllers;
 public class ImageBedController : ControllerBase
 {
     private readonly ImageBedService imageBedService;
+    public static byte[]? defaultImage;
     public ImageBedController(ImageBedService imageBedService)
     {
         this.imageBedService = imageBedService;
@@ -45,6 +46,10 @@ public class ImageBedController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetImageAsync([FromQuery(Name = "id")] Guid imageId)
     {
+        if (imageId == Guid.Empty && defaultImage!=null)
+        {
+            return File(defaultImage, "image/jpeg");
+        }
         var image = await imageBedService.GetImageAsync(imageId);
         if(image==null)
         {

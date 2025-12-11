@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SouthernMoneyBackend.Middleware;
 using System.Text.Json;
+using SouthernMoneyBackend;
 
 // 配置Web应用程序 创建host 启动kestrel服务器
 var builder = WebApplication.CreateBuilder(args);
@@ -84,6 +85,9 @@ builder.Services.AddScoped<ProductCategoryService>();
 builder.Services.AddScoped<UserFavoriteCategoryService>();
 builder.Services.AddScoped<NotificationService>();
 
+//default
+builder.Services.AddScoped<AddDefault>();
+
 
 // 对上面配置好的服务 构建真正实例app
 var app = builder.Build();
@@ -112,10 +116,8 @@ if (isDevEnv)
 //register default user 
 using (var scope = app.Services.CreateScope())
 {
-    var userService = scope.ServiceProvider.GetService<UserService>()!;
-    long userId = await userService.RegisterUser(User.CreateUser("test", "123", 114514), existIsOk: true);
-    var adminService = scope.ServiceProvider.GetService<AdminService>()!;
-    await adminService.SetAdmin(userId, true, alreadyOk: true);
+    var addDefault=scope.ServiceProvider.GetRequiredService<AddDefault>();
+    await addDefault.run();
 }
 
 
