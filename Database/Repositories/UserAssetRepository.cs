@@ -126,6 +126,16 @@ public class UserAssetRepository
         }
         
         asset.Balance += amount;
+        asset.Total = asset.Balance; // 总资产等于余额
+        
+        // 更新收益率：今日收益/总金额 * 100%，转换为百分比值，保留两位小数
+        if (asset.Total > 0)
+        {
+            asset.EarnRate = decimal.Round((asset.TodayEarn / asset.Total) * 100, 2);
+        } else {
+            asset.EarnRate = 0;
+        }
+        
         asset.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
@@ -143,6 +153,16 @@ public class UserAssetRepository
         }
         
         asset.Balance -= amount;
+        asset.Total = asset.Balance; // 总资产等于余额
+        
+        // 更新收益率：今日收益/总金额 * 100%，转换为百分比值，保留两位小数
+        if (asset.Total > 0)
+        {
+            asset.EarnRate = decimal.Round((asset.TodayEarn / asset.Total) * 100, 2);
+        } else {
+            asset.EarnRate = 0;
+        }
+        
         asset.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
@@ -161,6 +181,15 @@ public class UserAssetRepository
         
         asset.TodayEarn = todayEarn;
         asset.AccumulatedEarn = accumulatedEarn;
+        
+        // 更新收益率：今日收益/总金额
+        if (asset.Total > 0)
+        {
+            asset.EarnRate = asset.TodayEarn / asset.Total;
+        } else {
+            asset.EarnRate = 0;
+        }
+        
         asset.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
