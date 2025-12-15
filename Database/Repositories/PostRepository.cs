@@ -19,9 +19,20 @@ public class PostRepository
     /// </summary>
     public async Task<Post> AddPostAsync(Post post)
     {
-        _context.Posts.Add(post);
-        await _context.SaveChangesAsync();
-        return post;
+        // 使用 EF Core 的事务机制
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            _context.Posts.Add(post);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return post;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
     
     /// <summary>
@@ -43,9 +54,20 @@ public class PostRepository
     /// </summary>
     public async Task<Post> UpdatePostAsync(Post post)
     {
-        _context.Posts.Update(post);
-        await _context.SaveChangesAsync();
-        return post;
+        // 使用 EF Core 的事务机制
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            _context.Posts.Update(post);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return post;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
     
     /// <summary>

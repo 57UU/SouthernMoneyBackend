@@ -13,17 +13,20 @@ public class TransactionService
     private readonly ProductRepository _productRepository;
     private readonly UserRepository _userRepository;
     private readonly UserAssetRepository _userAssetRepository;
+    private readonly AppDbContext _context;
     
     public TransactionService(
         TransactionRepository transactionRepository,
         ProductRepository productRepository,
         UserRepository userRepository,
-        UserAssetRepository userAssetRepository)
+        UserAssetRepository userAssetRepository,
+        AppDbContext context)
     {
         _transactionRepository = transactionRepository;
         _productRepository = productRepository;
         _userRepository = userRepository;
         _userAssetRepository = userAssetRepository;
+        _context = context;
     }
     
     /// <summary>
@@ -31,79 +34,93 @@ public class TransactionService
     /// </summary>
     public async Task<TransactionRecord> CreateTransactionAsync(Guid productId, int quantity, long buyerId)
     {
-        // 验证商品是否存在
-        var product = await _productRepository.GetProductByIdAsync(productId);
-        if (product == null)
-        {
-            throw new Exception("Product not found");
-        }
+        // 使用事务包裹所有操作
+        using var transaction = await _context.Database.BeginTransactionAsync();
         
-        // 验证购买者不是商品的所有者
-        if (product.UploaderUserId == buyerId)
+        try
         {
-            throw new Exception("You cannot buy your own product");
-        }
-        
-        // 计算总价
-        var totalPrice = product.Price * quantity;
-        
-        // 检查购买者余额是否足够
-        var buyerAsset = await _userAssetRepository.GetUserAssetByUserIdAsync(buyerId);
-        if (buyerAsset == null || buyerAsset.Balance < totalPrice)
-        {
-            throw new Exception("Insufficient balance");
-        }
-        
-        // 检查销售者资产是否存在
-        var sellerAsset = await _userAssetRepository.GetUserAssetByUserIdAsync(product.UploaderUserId);
-        if (sellerAsset == null)
-        {
-            throw new Exception("Seller asset not found");
-        }
-        
-        // 扣除购买者余额
-        var subtractResult = await _userAssetRepository.SubtractFromUserBalanceAsync(buyerId, totalPrice);
-        if (!subtractResult)
-        {
-            throw new Exception("Failed to subtract balance from buyer");
-        }
-        
-        // 增加销售者余额
-        var addResult = await _userAssetRepository.AddToUserBalanceAsync(product.UploaderUserId, totalPrice);
-        if (!addResult)
-        {
-            // 如果增加销售者余额失败，需要回滚购买者的余额
-            await _userAssetRepository.AddToUserBalanceAsync(buyerId, totalPrice);
-            throw new Exception("Failed to add balance to seller");
-        }
-        
-        // 更新销售者收益
-        sellerAsset = await _userAssetRepository.GetUserAssetByUserIdAsync(product.UploaderUserId);
-        if (sellerAsset != null)
-        {
+            // 验证商品是否存在
+            var product = await _productRepository.GetProductByIdAsync(productId);
+            if (product == null)
+            {
+                throw new Exception("Product not found");
+            }
+            
+            // 验证购买者不是商品的所有者
+            if (product.UploaderUserId == buyerId)
+            {
+                throw new Exception("You cannot buy your own product");
+            }
+            
+            // 计算总价
+            var totalPrice = product.Price * quantity;
+            
+            // 检查购买者余额是否足够
+            var buyerAsset = await _userAssetRepository.GetUserAssetByUserIdAsync(buyerId);
+            if (buyerAsset == null || buyerAsset.Balance < totalPrice)
+            {
+                throw new Exception("Insufficient balance");
+            }
+            
+            // 检查销售者资产是否存在
+            var sellerAsset = await _userAssetRepository.GetUserAssetByUserIdAsync(product.UploaderUserId);
+            if (sellerAsset == null)
+            {
+                throw new Exception("Seller asset not found");
+            }
+            
+            // 扣除购买者余额（不自动保存）
+            var subtractResult = await _userAssetRepository.SubtractFromUserBalanceAsync(buyerId, totalPrice, false);
+            if (!subtractResult)
+            {
+                throw new Exception("Failed to subtract balance from buyer");
+            }
+            
+            // 增加销售者余额（不自动保存）
+            var addResult = await _userAssetRepository.AddToUserBalanceAsync(product.UploaderUserId, totalPrice, false);
+            if (!addResult)
+            {
+                throw new Exception("Failed to add balance to seller");
+            }
+            
+            // 更新销售者收益（不自动保存）
             sellerAsset.AccumulatedEarn += totalPrice;
             sellerAsset.TodayEarn += totalPrice;
             sellerAsset.Total = sellerAsset.Balance; // 确保总资产等于余额
-            await _userAssetRepository.UpdateUserAssetAsync(sellerAsset);
+            await _userAssetRepository.UpdateUserAssetAsync(sellerAsset, false);
+            
+            // 将商品标记为已删除（不自动保存）
+            product.IsDeleted = true;
+            await _productRepository.UpdateProductAsync(product, false);
+            
+            // 创建交易记录（不自动保存）
+            var transactionRecord = new TransactionRecord
+            {
+                Id = Guid.NewGuid(),
+                ProductId = productId,
+                BuyerUserId = buyerId,
+                Quantity = quantity,
+                Price = product.Price,
+                TotalPrice = totalPrice,
+                PurchaseTime = DateTime.UtcNow
+            };
+            
+            await _transactionRepository.AddTransactionAsync(transactionRecord, false);
+            
+            // 一次性保存所有更改
+            await _context.SaveChangesAsync();
+            
+            // 提交事务
+            await transaction.CommitAsync();
+            
+            return transactionRecord;
         }
-        
-        // 将商品标记为已删除
-        product.IsDeleted = true;
-        await _productRepository.UpdateProductAsync(product);
-        
-        // 创建交易记录
-        var transaction = new TransactionRecord
+        catch (Exception ex)
         {
-            Id = Guid.NewGuid(),
-            ProductId = productId,
-            BuyerUserId = buyerId,
-            Quantity = quantity,
-            Price = product.Price,
-            TotalPrice = totalPrice,
-            PurchaseTime = DateTime.UtcNow
-        };
-        
-        return await _transactionRepository.AddTransactionAsync(transaction);
+            // 回滚事务
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
     
     /// <summary>

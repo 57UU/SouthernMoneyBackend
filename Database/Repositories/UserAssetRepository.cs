@@ -35,12 +35,17 @@ public class UserAssetRepository
     }
     
     /// <summary>
-    /// 更新用户资产
+    /// 更新用户资产（不自动保存）
     /// </summary>
-    public async Task<UserAsset> UpdateUserAssetAsync(UserAsset asset)
+    public async Task<UserAsset> UpdateUserAssetAsync(UserAsset asset, bool saveChanges = true)
     {
         _context.UserAssets.Update(asset);
-        await _context.SaveChangesAsync();
+        
+        if (saveChanges)
+        {
+            await _context.SaveChangesAsync();
+        }
+        
         return asset;
     }
     
@@ -115,9 +120,9 @@ public class UserAssetRepository
     }
     
     /// <summary>
-    /// 增加用户余额
+    /// 增加用户余额（不自动保存）
     /// </summary>
-    public async Task<bool> AddToUserBalanceAsync(long userId, decimal amount)
+    public async Task<bool> AddToUserBalanceAsync(long userId, decimal amount, bool saveChanges = true)
     {
         var asset = await _context.UserAssets.FindAsync(userId);
         if (asset == null)
@@ -137,14 +142,19 @@ public class UserAssetRepository
         }
         
         asset.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        
+        if (saveChanges)
+        {
+            await _context.SaveChangesAsync();
+        }
+        
         return true;
     }
     
     /// <summary>
-    /// 减少用户余额
+    /// 减少用户余额（不自动保存）
     /// </summary>
-    public async Task<bool> SubtractFromUserBalanceAsync(long userId, decimal amount)
+    public async Task<bool> SubtractFromUserBalanceAsync(long userId, decimal amount, bool saveChanges = true)
     {
         var asset = await _context.UserAssets.FindAsync(userId);
         if (asset == null || asset.Balance < amount)
@@ -164,7 +174,12 @@ public class UserAssetRepository
         }
         
         asset.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        
+        if (saveChanges)
+        {
+            await _context.SaveChangesAsync();
+        }
+        
         return true;
     }
     

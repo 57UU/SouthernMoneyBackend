@@ -192,19 +192,24 @@ public class ProductRepository
     }
     
     /// <summary>
-    /// 更新商品信息
+    /// 更新商品信息（不自动保存）
     /// </summary>
-    public async Task<Product> UpdateProductAsync(Product product)
+    public async Task<Product> UpdateProductAsync(Product product, bool saveChanges = true)
     {
         _context.Products.Update(product);
-        await _context.SaveChangesAsync();
+        
+        if (saveChanges)
+        {
+            await _context.SaveChangesAsync();
+        }
+        
         return product;
     }
     
     /// <summary>
-    /// 删除商品（软删除）
+    /// 删除商品（软删除）（不自动保存）
     /// </summary>
-    public async Task<bool> DeleteProductAsync(Guid id)
+    public async Task<bool> DeleteProductAsync(Guid id, bool saveChanges = true)
     {
         var product = await _context.Products.FindAsync(id);
         if (product == null)
@@ -213,7 +218,12 @@ public class ProductRepository
         }
         
         product.IsDeleted = true;
-        await _context.SaveChangesAsync();
+        
+        if (saveChanges)
+        {
+            await _context.SaveChangesAsync();
+        }
+        
         return true;
     }
     

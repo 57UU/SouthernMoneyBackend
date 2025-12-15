@@ -15,12 +15,17 @@ public class TransactionRepository
     }
     
     /// <summary>
-    /// 添加新交易记录
+    /// 添加新交易记录（不自动保存）
     /// </summary>
-    public async Task<TransactionRecord> AddTransactionAsync(TransactionRecord transaction)
+    public async Task<TransactionRecord> AddTransactionAsync(TransactionRecord transaction, bool saveChanges = true)
     {
         _context.TransactionRecords.Add(transaction);
-        await _context.SaveChangesAsync();
+        
+        if (saveChanges)
+        {
+            await _context.SaveChangesAsync();
+        }
+        
         return transaction;
     }
     
