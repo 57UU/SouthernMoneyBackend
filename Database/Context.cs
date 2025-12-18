@@ -41,7 +41,6 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Password).IsRequired();
             entity.Property(e => e.IsAdmin).HasDefaultValue(false);
             entity.Property(e => e.IsDeleted).HasDefaultValue(false);
-            entity.Property(e => e.Balance).HasDefaultValue(0);
         });
 
         modelBuilder.Entity<Image>(entity =>

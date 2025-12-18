@@ -55,9 +55,6 @@ public class User
     //是否删除
     public bool IsDeleted { get; set; } = false;
 
-    //余额
-    public decimal Balance { get; set; } = 0;
-
     public ICollection<PostLike> PostLikes { get; set; } = new List<PostLike>();
     public ICollection<PostFavorite> PostFavorites { get; set; } = new List<PostFavorite>();
     [JsonIgnore]
@@ -163,7 +160,11 @@ public class TransactionRecord
     public User Buyer { get; set; }
     public int Quantity { get; set; } = 1;
     public decimal Price { get; set; }
-    public decimal TotalPrice { get; set; }
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public decimal TotalPrice {
+        get => Price * Quantity;
+        private set { }
+    }
     public DateTime PurchaseTime { get; set; } = DateTime.UtcNow;
 }
 

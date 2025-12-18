@@ -101,7 +101,6 @@ public class TransactionService
                 BuyerUserId = buyerId,
                 Quantity = quantity,
                 Price = product.Price,
-                TotalPrice = totalPrice,
                 PurchaseTime = DateTime.UtcNow
             };
             
