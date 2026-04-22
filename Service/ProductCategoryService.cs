@@ -77,6 +77,7 @@ public class ProductCategoryService
     /// <summary>
     /// 获取所有分类
     /// </summary>
+    [Cached(Key = "categories:all", Expiry = "6h")]
     public async Task<List<ProductCategory>> GetAllCategoriesAsync()
     {
         return await _categoryRepository.GetAllCategoriesAsync();

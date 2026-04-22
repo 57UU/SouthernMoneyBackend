@@ -90,11 +90,12 @@ public class ProductService
     /// <summary>
     /// 分页获取商品
     /// </summary>
+    [Cached(Key = "products:page:{0}:{1}", Expiry = "2m")]
     public async Task<(List<Product> Products, int TotalCount)> GetProductsPagedAsync(int page, int pageSize)
     {
         if (page <= 0) page = 1;
         if (pageSize <= 0) pageSize = 10;
-        
+
         return await _productRepository.GetProductsPagedAsync(page, pageSize);
     }
     

@@ -96,11 +96,12 @@ public class PostService
         };
     }
     
+    // 注意：GetPostsPageAsync 返回 PagedPostsResult 包含 LikedPostIds/FavoritedPostIds（用户相关），不适合直接缓存
     public async Task<PagedPostsResult> GetPostsPageAsync(int page, int pageSize, long currentUserId)
     {
         if (page <= 0) page = 1;
         if (pageSize <= 0) pageSize = 10;
-        
+
         var posts = await postRepository.GetAllPostsAsync(page, pageSize);
         var totalCount = await postRepository.GetPostCountAsync();
         

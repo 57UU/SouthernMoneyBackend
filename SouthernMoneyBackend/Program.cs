@@ -3,6 +3,7 @@ using Service;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SouthernMoneyBackend.Middleware;
+using StackExchange.Redis;
 using System.Text.Json;
 using SouthernMoneyBackend;
 
@@ -71,9 +72,16 @@ builder.Services.AddScoped<Database.Repositories.ProductCategoryRepository>();
 builder.Services.AddScoped<Database.Repositories.UserFavoriteCategoryRepository>();
 builder.Services.AddScoped<Database.Repositories.NotificationRepository>();
 
+// Redis
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var config = ConfigurationOptions.Parse(builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379");
+    config.AbortOnConnectFail = false;
+    return ConnectionMultiplexer.Connect(config);
+});
+builder.Services.AddSingleton<CacheProxyGenerator>();
 
-
-// 注入业务逻辑层
+// 注入业务逻辑层 (使用缓存代理)
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PostService>();
 builder.Services.AddScoped<ImageBedService>();
@@ -84,6 +92,27 @@ builder.Services.AddScoped<UserAssetService>();
 builder.Services.AddScoped<ProductCategoryService>();
 builder.Services.AddScoped<UserFavoriteCategoryService>();
 builder.Services.AddScoped<NotificationService>();
+
+// 注册服务代理 - 拦截带有 [Cached] 特性的方法
+// 注意：需要先解析原始服务，再创建代理包装
+builder.Services.AddScoped(serviceProvider =>
+{
+    var proxyGen = serviceProvider.GetRequiredService<CacheProxyGenerator>();
+    var target = serviceProvider.GetRequiredService<UserService>();
+    return proxyGen.CreateCachedProxy(target);
+});
+builder.Services.AddScoped(serviceProvider =>
+{
+    var proxyGen = serviceProvider.GetRequiredService<CacheProxyGenerator>();
+    var target = serviceProvider.GetRequiredService<ProductCategoryService>();
+    return proxyGen.CreateCachedProxy(target);
+});
+builder.Services.AddScoped(serviceProvider =>
+{
+    var proxyGen = serviceProvider.GetRequiredService<CacheProxyGenerator>();
+    var target = serviceProvider.GetRequiredService<ProductService>();
+    return proxyGen.CreateCachedProxy(target);
+});
 
 //default
 builder.Services.AddScoped<AddDefault>();
